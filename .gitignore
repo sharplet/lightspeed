@@ -1,0 +1,6 @@
+# Build products
+HelloRake
+*.o
+*.swiftmodule
+*.swiftdoc
+*.dylib
