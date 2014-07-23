@@ -20,21 +20,22 @@ CLEAN.include('**/*.o')
 rule '.dylib' => [->(lib){ source_files_for(lib).ext('.o') }] do |t|
   sh 'swift', '-emit-library', '-o', t.name, *t.sources, '-module-name', t.name.pathmap("%{lib,}n")
 end
+CLEAN.include('**/*.dylib')
 
 rule '.swiftmodule' => [->(swiftmodule){ source_files_for(swiftmodule) }] do |t|
   swift '-emit-module', '-module-name', t.name.ext, *t.sources
 end
+CLEAN.include('**/*.swiftmodule')
+CLEAN.include('**/*.swiftdoc')
 
-MODULES = FileList['Hello'].ext('.swiftmodule')
-CLEAN.include(MODULES)
-CLEAN.include(MODULES.ext('.swiftdoc'))
+MODULES = FileList['Hello']
+MODULES.each do |mod|
+  task mod => ["lib#{mod}.dylib", "#{mod}.swiftmodule"]
+end
 
-LIBS = MODULES.ext('.dylib').pathmap("lib%f")
-CLEAN.include(LIBS)
-
-file 'HelloRake' => ['main.swift', LIBS, MODULES] do |t|
-  libs = FileList.new(t.sources.select {|d| d.end_with? ".dylib" })
-  lib_opts = libs.pathmap("%{lib,}n").ext.map {|l| "-l#{l}" }
-  swift '-o', t.name, '-I.', '-L.', *lib_opts, t.source
+file 'HelloRake' => ['main.swift', MODULES] do |t|
+  module_opts = ['-I.']
+  linker_opts = ['-L.'] + MODULES.pathmap("-l%n")
+  swift '-o', t.name, t.source, *module_opts, *linker_opts
 end
 CLEAN.include('HelloRake')
