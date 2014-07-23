@@ -28,12 +28,12 @@ end
 CLEAN.include('**/*.swiftmodule')
 CLEAN.include('**/*.swiftdoc')
 
-MODULES = FileList['Hello']
+MODULES = FileList['Hello', 'Rake']
 MODULES.each do |mod|
   task mod => ["lib#{mod}.dylib", "#{mod}.swiftmodule"]
 end
 
-file 'HelloRake' => ['main.swift', MODULES] do |t|
+file 'HelloRake' => ['main.swift', *MODULES] do |t|
   module_opts = ['-I.']
   linker_opts = ['-L.'] + MODULES.pathmap("-l%n")
   swift '-o', t.name, t.source, *module_opts, *linker_opts
