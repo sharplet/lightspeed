@@ -1,7 +1,7 @@
 # Rake DSL extensions for Swift.
 
 require 'rake'
-require_relative 'swiftmodule_task'
+require_relative 'module_task'
 
 module Swift
   module DSL
@@ -11,8 +11,8 @@ module Swift
     # will be a dynamic library libHello.dylib and a swiftmodule file
     # Hello.swiftmodule.
     #
-    def swiftmodule(*args, &block)
-      Swift::SwiftmoduleTask.define_task(*args, &block)
+    def swiftmodule(module_name, source_files = FileList["#{module_name}/**/*.swift"])
+      ModuleTask.new(module_name, source_files).define
     end
 
   end
