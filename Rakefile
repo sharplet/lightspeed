@@ -7,20 +7,6 @@ task :default => :build
 desc "Build executable HelloRake and all modules"
 task :build => 'HelloRake'
 
-def source_files_for(lib_or_module)
-  dir = lib_or_module.pathmap("%{lib,}n")
-  FileList["#{dir}/**/*.swift"]
-end
-
-CLEAN.include('**/*.o')
-CLEAN.include('**/*.dylib')
-
-rule '.swiftmodule' => [->(swiftmodule){ source_files_for(swiftmodule) }] do |t|
-  swift '-emit-module', '-module-name', t.name.ext, *t.sources
-end
-CLEAN.include('**/*.swiftmodule')
-CLEAN.include('**/*.swiftdoc')
-
 MODULES = FileList['Hello', 'Rake']
 MODULES.each do |mod|
   swiftmodule(mod)
@@ -31,4 +17,9 @@ file 'HelloRake' => ['main.swift', *MODULES] do |t|
   linker_opts = ['-L.'] + MODULES.pathmap("-l%n")
   swift '-o', t.name, t.source, *module_opts, *linker_opts
 end
+
 CLEAN.include('HelloRake')
+CLEAN.include('**/*.o')
+CLEAN.include('**/*.dylib')
+CLEAN.include('**/*.swiftmodule')
+CLEAN.include('**/*.swiftdoc')

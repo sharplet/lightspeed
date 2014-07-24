@@ -4,6 +4,7 @@
 require_relative 'swift/dylib_task'
 require_relative 'swift/group_task'
 require_relative 'swift/module_task'
+require_relative 'swift/swiftmodule_task'
 
 # DSL
 require_relative 'swift/dsl'
