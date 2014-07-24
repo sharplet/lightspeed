@@ -7,4 +7,5 @@ require_relative 'swift/swiftmodule_task'
 require_relative 'swift/dsl'
 
 # Extensions
+require_relative 'swift/file_list_ext'
 require_relative 'swift/file_utils_ext'
