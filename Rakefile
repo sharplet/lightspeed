@@ -30,7 +30,7 @@ CLEAN.include('**/*.swiftdoc')
 
 MODULES = FileList['Hello', 'Rake']
 MODULES.each do |mod|
-  task mod => ["lib#{mod}.dylib", "#{mod}.swiftmodule"]
+  swiftmodule(mod)
 end
 
 file 'HelloRake' => ['main.swift', *MODULES] do |t|
