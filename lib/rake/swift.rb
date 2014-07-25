@@ -6,6 +6,9 @@ require_relative 'swift/group_task'
 require_relative 'swift/module_task'
 require_relative 'swift/swiftmodule_task'
 
+# Configuration
+require_relative 'swift/configuration'
+
 # DSL
 require_relative 'swift/dsl'
 

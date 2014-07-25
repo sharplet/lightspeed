@@ -2,6 +2,12 @@ $:.unshift File.expand_path('../lib', __FILE__)
 require 'rake/swift'
 require 'rake/clean'
 
+Swift.configure do |c|
+  c.sdk = :macosx # default value
+  # c.sdk = :iphonesimulator # module builds fine, linker error building executable
+  # c.sdk = :iphoneos # LOTS of errors
+end
+
 task :default => :build
 
 desc "Build executable HelloRake and all modules"
