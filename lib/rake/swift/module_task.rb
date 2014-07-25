@@ -35,6 +35,7 @@ module Swift
     end
 
     def define_wrapper_task
+      desc "Build module '#{module_name}'"
       ModuleWrapperTask.define_task(module_name => [dylib_name, swiftmodule_name])
     end
 
