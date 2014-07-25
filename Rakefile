@@ -17,15 +17,14 @@ task :default => :build
 desc "Build executable HelloRake and all modules"
 task :build => 'HelloRake'
 
-MODULES = FileList['Hello', 'Rake']
-MODULES.each do |mod|
-  swiftmodule(mod)
-end
+swiftmodule 'Hello'
+swiftmodule 'Rake'
 
-file 'HelloRake' => ['main.swift', *MODULES] do |t|
+file 'HelloRake' => ['main.swift', 'Hello', 'Rake'] do |t|
+  main, *modules = *t.sources
   module_opts = ['-I.']
-  linker_opts = ['-L.'] + MODULES.pathmap("-l%n")
-  swift '-o', t.name, t.source, *module_opts, *linker_opts
+  linker_opts = ['-L.'] + modules.map {|m| "-l#{m}" }
+  swift '-o', t.name, *module_opts, *linker_opts, main
 end
 
 CLEAN.include('HelloRake')
