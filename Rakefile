@@ -23,12 +23,11 @@ swiftmodule 'Rake'
 file 'HelloRake' => ['main.swift', 'Hello', 'Rake'] do |t|
   main, *modules = *t.sources
   module_opts = ['-I.']
-  linker_opts = ['-L.'] + modules.map {|m| "-l#{m}" }
+  linker_opts = modules.map {|m| "-l#{m}" }
   swift '-o', t.name, *module_opts, *linker_opts, main
 end
 
 CLEAN.include('HelloRake')
 CLEAN.include('Build')
-CLEAN.include('**/*.dylib')
 CLEAN.include('**/*.swiftmodule')
 CLEAN.include('**/*.swiftdoc')

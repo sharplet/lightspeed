@@ -7,11 +7,17 @@ module Swift
     extend Rake::DSL
 
     def self.define_task(*args, &block)
-      t = super(*args) do |t|
+      task_name, arg_names, deps = Rake.application.resolve_args(args)
+      build_product = File.join(Configuration.build_products_dir, task_name)
+
+      build_location = directory(build_product.pathmap("%d")).name
+      file_task = file(build_product => [*deps, build_location]) { |t|
+        object_files = t.sources - [build_location]
         module_name = t.name.pathmap("%n").sub(/^lib/, '')
-        sh 'swift', '-emit-library', '-o', t.name, *t.sources, '-module-name', module_name
-      end
-      t.enhance(&block)
+        swift '-emit-library', '-o', t.name, *object_files, '-module-name', module_name
+      }
+
+      super(task_name, *arg_names).enhance([file_task], &block)
     end
 
     def self.synthesize_object_file_dependencies(source_files, module_name)
