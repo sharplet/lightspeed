@@ -1,23 +1,23 @@
 # Emits a Swift dynamic library by linking its object file dependencies.
 
+require_relative 'group_task'
+
 module Swift
-  class DylibTask < Rake::FileTask
+  class DylibTask < Rake::Task
+
+    include GroupTask
 
     extend FileUtils
     extend Rake::DSL
 
     def self.define_task(*args, &block)
       task_name, arg_names, deps = Rake.application.resolve_args(args)
-      build_product = File.join(Configuration.build_products_dir, task_name)
-
-      build_location = directory(build_product.pathmap("%d")).name
-      file_task = file(build_product => [*deps, build_location]) { |t|
-        object_files = t.sources - [build_location]
+      task = super(task_name, *arg_names)
+      BuildProductTask.new(task, deps).define { |t, desc|
+        object_files = desc.orig_sources
         module_name = t.name.pathmap("%n").sub(/^lib/, '')
         swift '-emit-library', '-o', t.name, *object_files, '-module-name', module_name
       }
-
-      super(task_name, *arg_names).enhance([file_task], &block)
     end
 
     def self.synthesize_object_file_dependencies(source_files, module_name)
