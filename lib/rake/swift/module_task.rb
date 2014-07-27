@@ -3,7 +3,7 @@
 
 require 'rake'
 require 'rake/tasklib'
-require_relative 'group_task'
+require_relative 'proxy_task'
 require_relative 'dylib_task'
 
 module Swift
@@ -48,7 +48,7 @@ module Swift
   end
 
   class ModuleWrapperTask < Rake::Task
-    include GroupTask
+    include ProxyTask
   end
 
 end

@@ -1,11 +1,10 @@
 # Emits a Swift dynamic library by linking its object file dependencies.
 
-require_relative 'group_task'
+require_relative 'proxy_task'
 
 module Swift
   class DylibTask < Rake::Task
-
-    include GroupTask
+    include ProxyTask
 
     extend FileUtils
     extend Rake::DSL
