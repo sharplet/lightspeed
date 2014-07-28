@@ -1,7 +1,7 @@
-# Given an existing task, defines a backing file task whose location is
-# the task's name only relative to a build products directory defined by
-# a configuration object. The build products directory is guaranteed to
-# exists when the task runs.
+# Create a file task with the given name, and define a backing file task
+# whose location is the task's name only relative to a build products
+# directory defined by a configuration object. The build products
+# directory is guaranteed to exists when the task runs.
 
 require 'rake/tasklib'
 require_relative 'configuration'
