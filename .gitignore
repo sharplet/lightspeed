@@ -1,5 +1,5 @@
 # Build products
-HelloRake
+bin/hello
 *.o
 *.swiftmodule
 *.swiftdoc
