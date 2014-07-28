@@ -8,7 +8,6 @@ require_relative 'configuration'
 
 module Swift
   class BuildProductTask < Rake::TaskLib
-    include Rake::DSL
     include FileUtils
 
     attr_reader :name, :config
