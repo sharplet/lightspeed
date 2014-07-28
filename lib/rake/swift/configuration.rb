@@ -62,18 +62,6 @@ module Swift
 
     ### Build locations
 
-    def self.resolve_build_intermediates_dir(module_name)
-      instance.resolve_build_intermediates_dir(module_name)
-    end
-
-    def resolve_build_intermediates_dir(module_name)
-      if module_name.nil? || module_name.empty?
-        build_intermediates_dir
-      else
-        File.join(build_intermediates_dir, "#{module_name}.build")
-      end
-    end
-
     def self.build_products_dir
       instance.build_products_dir
     end
