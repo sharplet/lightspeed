@@ -11,26 +11,20 @@ module Swift
     include Rake::DSL
     include FileUtils
 
-    attr_reader :task, :deps, :config
+    attr_reader :name, :config
 
-    alias_method :orig_sources, :deps
-
-    def initialize(task, deps, config: Configuration.instance)
-      @task = task
-      @deps = deps
+    def initialize(name, config: Configuration.instance)
+      @name = name
       @config = config
     end
 
     def define(&block)
-      task.enhance([file(build_product).tap { |file_task|
-        file_task.enhance { |t| yield t, self }
-        file_task.enhance(deps)
-        file_task.enhance([directory(build_location).name])
-      }])
+      dir = directory(build_location).name
+      file(build_product => dir)
     end
 
     def build_product
-      File.join(config.build_products_dir, task.name)
+      File.join(config.build_products_dir, name)
     end
 
     def build_location

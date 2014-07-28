@@ -26,8 +26,7 @@ module Swift
     end
 
     def define_dylib_task
-      deps = DylibTask.synthesize_object_file_dependencies(source_files, module_name)
-      DylibTask.define_task(dylib_name => deps)
+      DylibTask.new(dylib_name, source_files, module_name).define
     end
 
     def define_swiftmodule_task
