@@ -14,7 +14,7 @@ end
 
 task :default => :build
 
-desc "Build executable HelloRake and all modules"
+desc "Build executable hello and all modules"
 task :build => 'bin/hello'
 
 swiftmodule 'Hello'
