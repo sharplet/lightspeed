@@ -1,5 +1,5 @@
 $:.unshift File.expand_path('../lib', __FILE__)
-require 'rake/swift'
+require 'lightspeed'
 require 'rake/clean'
 
 Swift.configure do |c|
