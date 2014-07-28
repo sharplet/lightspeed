@@ -15,4 +15,4 @@ require_relative 'lightspeed/configuration'
 require_relative 'lightspeed/dsl'
 
 # Extensions
-require_relative 'lightspeed/file_utils_ext'
+require_relative 'lightspeed/ext/file_utils'

@@ -1,6 +1,6 @@
 # Swift extensions for the FileUtils module.
 
-require_relative 'configuration'
+require_relative '../configuration'
 
 module FileUtils
 
