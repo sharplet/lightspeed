@@ -19,7 +19,7 @@ module Swift
     def define
       deps = create_objects
       build_product = create_build_product(deps)
-      DylibCreationTask.define_task(name => build_product)
+      ProxyTask.define_task(name => build_product)
     end
 
     def create_objects
@@ -36,10 +36,6 @@ module Swift
       }
     end
 
-  end
-
-  class DylibCreationTask < Rake::Task
-    include ProxyTask
   end
 
 end

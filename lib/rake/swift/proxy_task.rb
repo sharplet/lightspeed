@@ -4,7 +4,7 @@
 require 'rake'
 
 module Swift
-  module ProxyTask
+  class ProxyTask < Rake::Task
 
     def needed?
       prerequisite_tasks.any?(&:needed?)

@@ -35,7 +35,7 @@ module Swift
 
     def define_wrapper_task
       desc "Build module '#{module_name}'"
-      ModuleWrapperTask.define_task(module_name => [dylib_name, swiftmodule_name])
+      ProxyTask.define_task(module_name => [dylib_name, swiftmodule_name])
     end
 
     private
@@ -44,10 +44,6 @@ module Swift
       module_name.sub(/^(?!lib)/, 'lib').ext('.dylib')
     end
 
-  end
-
-  class ModuleWrapperTask < Rake::Task
-    include ProxyTask
   end
 
 end
