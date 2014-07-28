@@ -11,7 +11,7 @@ module Swift
       fail ArgumentError, "source must not be nil" if not from_source
       @source = from_source
       @module_name = module_name
-      super(source.ext('.o'), config: config)
+      super(make_name, config: config)
     end
 
     def define
@@ -20,6 +20,24 @@ module Swift
         opts += ['-module-name', module_name] unless module_name.empty?
         swift(*opts)
       }
+    end
+
+    def build_product
+      File.join(config.build_intermediates_dir, name)
+    end
+
+    private
+
+    def make_name
+      components = [module_build_dir, source.ext('.o')].reject(&:empty?)
+      File.join(*components)
+    end
+
+    def module_build_dir
+      case module_name
+      when "", nil then ""
+      else "#{module_name}.build"
+      end
     end
 
   end

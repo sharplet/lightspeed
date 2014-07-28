@@ -8,7 +8,6 @@ require_relative 'configuration'
 
 module Swift
   class BuildProductTask < Rake::TaskLib
-    include FileUtils
 
     attr_reader :name, :config
 
@@ -18,8 +17,8 @@ module Swift
     end
 
     def define(&block)
-      dir = directory(build_location).name
-      file(build_product => dir)
+      dir = directory(build_location)
+      file(build_product => dir.name)
     end
 
     def build_product
