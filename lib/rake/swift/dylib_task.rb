@@ -24,7 +24,7 @@ module Swift
 
     def create_objects
       source_files.map { |s|
-        ObjectFileTask.new(s, module_name: module_name).define
+        ObjectFileTask.new(from_source: s, module_name: module_name).define
       }.map(&:name)
     end
 
