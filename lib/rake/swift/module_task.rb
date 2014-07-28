@@ -30,7 +30,7 @@ module Swift
     end
 
     def define_swiftmodule_task
-      SwiftmoduleTask.define_task(swiftmodule_name => source_files)
+      SwiftmoduleTask.new(swiftmodule_name, source_files).define
     end
 
     def define_wrapper_task
