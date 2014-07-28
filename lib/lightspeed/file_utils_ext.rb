@@ -11,8 +11,8 @@ module FileUtils
   #   swift "Hello.rake -o hello"
   #
   def swift(*args)
-    sdk_opts = ['-sdk', Lightspeed::Configuration.sdk]
-    build_products = Lightspeed::Configuration.build_products_dir
+    sdk_opts = ['-sdk', Lightspeed.configuration.sdk]
+    build_products = Lightspeed.configuration.build_products_dir
     linker_opts = ["-L#{build_products}"]
     module_opts = ["-I#{build_products}"]
 

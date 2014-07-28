@@ -14,6 +14,11 @@ module Lightspeed
     yield Configuration.instance
   end
 
+  # Access the shared configuration.
+  def self.configuration
+    Configuration.instance
+  end
+
   # Encapsulates a set of Swift build settings.
   class Configuration
 
