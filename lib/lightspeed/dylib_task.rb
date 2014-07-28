@@ -4,7 +4,7 @@ require 'rake/tasklib'
 require_relative 'object_file_task'
 require_relative 'proxy_task'
 
-module Swift
+module Lightspeed
 
   class DylibTask < Rake::TaskLib
 

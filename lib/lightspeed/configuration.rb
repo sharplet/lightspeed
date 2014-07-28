@@ -1,12 +1,12 @@
 # Global configuration and build options for Swift.
 
-module Swift
+module Lightspeed
 
   # Top-level API for configuring Swift build settings.
   #
   # Example:
   #
-  #   Swift.configure do |c|
+  #   Lightspeed.configure do |c|
   #     c.sdk = :macosx
   #   end
   #

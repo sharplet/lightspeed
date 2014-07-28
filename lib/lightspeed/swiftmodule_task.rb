@@ -2,7 +2,7 @@
 
 require 'rake/tasklib'
 
-module Swift
+module Lightspeed
   class SwiftmoduleTask < Rake::TaskLib
 
     attr_reader :name, :sources, :module_name

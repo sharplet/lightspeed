@@ -2,7 +2,7 @@
 
 require_relative 'build_product_task'
 
-module Swift
+module Lightspeed
   class ObjectFileTask < BuildProductTask
 
     attr_reader :source, :module_name, :config

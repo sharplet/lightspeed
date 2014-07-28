@@ -1,5 +1,7 @@
 # Swift extensions for the FileUtils module.
 
+require_relative 'configuration'
+
 module FileUtils
 
   # Runs the swift compiler with the given arguments. SDK search paths and
@@ -9,8 +11,8 @@ module FileUtils
   #   swift "Hello.rake -o hello"
   #
   def swift(*args)
-    sdk_opts = ['-sdk', Swift::Configuration.sdk]
-    build_products = Swift::Configuration.build_products_dir
+    sdk_opts = ['-sdk', Lightspeed::Configuration.sdk]
+    build_products = Lightspeed::Configuration.build_products_dir
     linker_opts = ["-L#{build_products}"]
     module_opts = ["-I#{build_products}"]
 

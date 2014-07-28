@@ -2,7 +2,7 @@ $:.unshift File.expand_path('../lib', __FILE__)
 require 'lightspeed'
 require 'rake/clean'
 
-Swift.configure do |c|
+Lightspeed.configure do |c|
 
   c.sdk = :macosx # default value
   # c.sdk = :iphonesimulator # module builds fine, linker error building executable
