@@ -1,9 +1,11 @@
 # Rake extensions for compiling Swift files and modules.
 
 # Tasks
+require_relative 'swift/build_product_task'
 require_relative 'swift/dylib_task'
-require_relative 'swift/group_task'
 require_relative 'swift/module_task'
+require_relative 'swift/object_file_task'
+require_relative 'swift/proxy_task'
 require_relative 'swift/swiftmodule_task'
 
 # Configuration

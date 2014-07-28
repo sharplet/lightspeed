@@ -10,9 +10,11 @@ module FileUtils
   #
   def swift(*args)
     sdk_opts = ['-sdk', Swift::Configuration.sdk]
-    linker_opts = ["-L#{Swift::Configuration.build_products_dir}"]
+    build_products = Swift::Configuration.build_products_dir
+    linker_opts = ["-L#{build_products}"]
+    module_opts = ["-I#{build_products}"]
 
-    all_opts = sdk_opts + linker_opts + args
+    all_opts = sdk_opts + linker_opts + module_opts + args
 
     if args.count == 1 && args.first.to_s.include?(" ")
       sh "xcrun swift #{all_opts.join(" ")}"

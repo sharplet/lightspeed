@@ -15,19 +15,17 @@ end
 task :default => :build
 
 desc "Build executable HelloRake and all modules"
-task :build => 'HelloRake'
+task :build => 'bin/hello'
 
 swiftmodule 'Hello'
 swiftmodule 'Rake'
 
-file 'HelloRake' => ['main.swift', 'Hello', 'Rake'] do |t|
-  main, *modules = *t.sources
-  module_opts = ['-I.']
+directory 'bin'
+file 'bin/hello' => ['main.swift', 'bin', 'Hello', 'Rake'] do |t|
+  main, _, *modules = *t.sources
   linker_opts = modules.map {|m| "-l#{m}" }
-  swift '-o', t.name, *module_opts, *linker_opts, main
+  swift '-o', t.name, *linker_opts, main
 end
 
-CLEAN.include('HelloRake')
+CLEAN.include('bin')
 CLEAN.include('Build')
-CLEAN.include('**/*.swiftmodule')
-CLEAN.include('**/*.swiftdoc')

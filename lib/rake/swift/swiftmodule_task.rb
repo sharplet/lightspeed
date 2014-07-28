@@ -1,17 +1,23 @@
 # Compiles a .swiftmodule file from Swift source file dependencies.
 
-require 'rake'
+require 'rake/tasklib'
 
 module Swift
-  class SwiftmoduleTask < Rake::FileTask
+  class SwiftmoduleTask < Rake::TaskLib
 
-    extend FileUtils
+    attr_reader :name, :sources, :module_name
 
-    def self.define_task(*args, &block)
-      t = super(*args) do |t|
-        swift '-emit-module', '-o', t.name, '-module-name', t.name.ext, *t.sources
-      end
-      t.enhance(&block)
+    def initialize(name, sources, module_name: nil)
+      @name = name
+      @sources = sources
+      @module_name = module_name || name.ext
+    end
+
+    def define
+      build_product = BuildProductTask.new(name).define.enhance(sources) { |t|
+        swift '-emit-module', '-o', t.name, '-module-name', module_name, *sources
+      }
+      ProxyTask.define_task(name => build_product)
     end
 
   end

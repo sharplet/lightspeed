@@ -62,10 +62,6 @@ module Swift
 
     ### Build locations
 
-    def self.module_intermediates_dir(module_name)
-      File.join instance.build_intermediates_dir, "#{module_name}.build"
-    end
-
     def self.build_products_dir
       instance.build_products_dir
     end

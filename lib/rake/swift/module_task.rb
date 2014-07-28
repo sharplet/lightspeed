@@ -3,7 +3,7 @@
 
 require 'rake'
 require 'rake/tasklib'
-require_relative 'group_task'
+require_relative 'proxy_task'
 require_relative 'dylib_task'
 
 module Swift
@@ -26,17 +26,16 @@ module Swift
     end
 
     def define_dylib_task
-      deps = DylibTask.synthesize_object_file_dependencies(source_files, module_name)
-      DylibTask.define_task(dylib_name => deps)
+      DylibTask.new(dylib_name, source_files, module_name).define
     end
 
     def define_swiftmodule_task
-      SwiftmoduleTask.define_task(swiftmodule_name => source_files)
+      SwiftmoduleTask.new(swiftmodule_name, source_files).define
     end
 
     def define_wrapper_task
       desc "Build module '#{module_name}'"
-      ModuleWrapperTask.define_task(module_name => [dylib_name, swiftmodule_name])
+      ProxyTask.define_task(module_name => [dylib_name, swiftmodule_name])
     end
 
     private
@@ -45,10 +44,6 @@ module Swift
       module_name.sub(/^(?!lib)/, 'lib').ext('.dylib')
     end
 
-  end
-
-  class ModuleWrapperTask < Rake::Task
-    include GroupTask
   end
 
 end
