@@ -1,5 +1,6 @@
 # Emits a Swift dynamic library by linking its object file dependencies.
 
+require_relative 'object_file_task'
 require_relative 'proxy_task'
 
 module Swift
@@ -20,17 +21,9 @@ module Swift
     end
 
     def self.synthesize_object_file_dependencies(source_files, module_name)
-      intermediates_dir = Configuration.module_intermediates_dir(module_name)
-      object_files = source_files.pathmap("%{,#{intermediates_dir}/}X.o")
-      sources_and_objects = source_files.zip(object_files)
-
-      object_file_tasks = sources_and_objects.map { |src, obj|
-        build_location = directory(obj.pathmap("%d"))
-        Rake::FileTask.define_task(obj => [src, build_location]) { |t|
-          swift t.source, '-emit-object', '-o', t.name, '-module-name', module_name
-        }
-      }
-      object_file_tasks.map(&:name)
+      source_files.map { |s|
+        ObjectFileTask.new(s, module_name: module_name).define
+      }.map(&:name)
     end
 
   end
