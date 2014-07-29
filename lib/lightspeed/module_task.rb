@@ -10,13 +10,22 @@ module Lightspeed
 
   class ModuleTask < Rake::TaskLib
 
-    attr_accessor :module_name, :dylib_name, :swiftmodule_name, :source_files
+    attr_accessor :dylib_name, :swiftmodule_name, :source_files
 
-    def initialize(module_name, source_files)
-      @module_name = module_name
-      @dylib_name = dylib_for_module(module_name)
-      @swiftmodule_name = module_name.ext('.swiftmodule')
-      @source_files = source_files
+    attr_reader :name, :module_dependencies
+
+    def initialize(*args)
+      name, _, deps = *Rake.application.resolve_args(*args)
+      @name = name
+      @module_dependencies = deps
+      @dylib_name = dylib_for_module(name)
+      @swiftmodule_name = name.ext('.swiftmodule')
+      @source_files = FileList["#{name}/**/*.swift"]
+    end
+
+    def source_files=(*args)
+      patterns = args.flatten
+      @source_files = FileList[*patterns]
     end
 
     def define
@@ -26,7 +35,7 @@ module Lightspeed
     end
 
     def define_dylib_task
-      DylibTask.new(dylib_name, source_files, module_name).define
+      DylibTask.new(dylib_name, source_files, name).define
     end
 
     def define_swiftmodule_task
@@ -34,8 +43,8 @@ module Lightspeed
     end
 
     def define_wrapper_task
-      desc "Build module '#{module_name}'"
-      ProxyTask.define_task(module_name => [dylib_name, swiftmodule_name])
+      desc "Build module '#{name}'"
+      ProxyTask.define_task(name => [dylib_name, swiftmodule_name])
     end
 
     private

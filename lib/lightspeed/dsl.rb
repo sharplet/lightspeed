@@ -12,8 +12,8 @@ module Lightspeed
     # will be a dynamic library libHello.dylib and a swiftmodule file
     # Hello.swiftmodule.
     #
-    def swiftmodule(module_name, source_files = FileList["#{module_name}/**/*.swift"])
-      ModuleTask.new(module_name, source_files).define
+    def swiftmodule(*args)
+      ModuleTask.new(args).define
     end
 
     # Define a group of tasks for building a swift executable.
