@@ -26,8 +26,9 @@ task :build_all => 'hello'
 
 swiftmodule 'Hello'
 swiftmodule 'Rake'
+swiftmodule 'Greetable' => ['Hello', 'Rake']
 
-swiftapp 'hello' => ['Hello', 'Rake'] do |app|
+swiftapp 'hello' => 'Greetable' do |app|
   app.source_files = 'main.swift'
 end
 
