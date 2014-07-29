@@ -1,17 +1,22 @@
 # Global configuration and build options for Swift.
 
-module Swift
+module Lightspeed
 
   # Top-level API for configuring Swift build settings.
   #
   # Example:
   #
-  #   Swift.configure do |c|
+  #   Lightspeed.configure do |c|
   #     c.sdk = :macosx
   #   end
   #
   def self.configure
     yield Configuration.instance
+  end
+
+  # Access the shared configuration.
+  def self.configuration
+    Configuration.instance
   end
 
   # Encapsulates a set of Swift build settings.
@@ -40,6 +45,10 @@ module Swift
 
     ### SDK paths
 
+    def sdk
+      resolve_sdk
+    end
+
     def sdk=(new_sdk)
       @resolved_sdk = nil
       @sdk = new_sdk
@@ -47,16 +56,16 @@ module Swift
 
     def resolve_sdk
       @resolved_sdk ||=
-        case sdk
+        case @sdk
         when :macosx, :iphoneos, :iphonesimulator
-          %x(xcrun --sdk #{sdk.to_s} --show-sdk-path).chomp
+          %x(xcrun --sdk #{@sdk.to_s} --show-sdk-path).chomp
         else
           fail "Unknown SDK Error"
         end
     end
 
     def self.sdk
-      instance.resolve_sdk
+      instance.sdk
     end
 
 

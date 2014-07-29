@@ -3,7 +3,7 @@
 
 require 'rake'
 
-module Swift
+module Lightspeed
   class ProxyTask < Rake::Task
 
     def needed?

@@ -1,8 +1,13 @@
-$:.unshift File.expand_path('../lib', __FILE__)
-require 'rake/swift'
+lib = File.expand_path('../lib', __FILE__)
+$:.unshift(lib) unless $:.include?(lib)
+require 'lightspeed'
 require 'rake/clean'
 
-Swift.configure do |c|
+namespace :gem do
+  require 'bundler/gem_tasks'
+end
+
+Lightspeed.configure do |c|
 
   c.sdk = :macosx # default value
   # c.sdk = :iphonesimulator # module builds fine, linker error building executable
@@ -27,5 +32,7 @@ file 'bin/hello' => ['main.swift', 'bin', 'Hello', 'Rake'] do |t|
   swift '-o', t.name, *linker_opts, main
 end
 
-CLEAN.include('bin')
-CLEAN.include('Build')
+CLOBBER.include('bin')
+CLOBBER.include('pkg')
+CLOBBER.include('Build/Products')
+CLEAN.include('Build/Intermediates')

@@ -6,7 +6,7 @@
 require 'rake/tasklib'
 require_relative 'configuration'
 
-module Swift
+module Lightspeed
   class BuildProductTask < Rake::TaskLib
 
     attr_reader :name, :config

@@ -3,7 +3,7 @@
 require 'rake'
 require_relative 'module_task'
 
-module Swift
+module Lightspeed
   module DSL
 
     # Define a group of tasks for building a swift module. For example,
@@ -18,4 +18,4 @@ module Swift
   end
 end
 
-self.extend(Swift::DSL)
+self.extend(Lightspeed::DSL)
