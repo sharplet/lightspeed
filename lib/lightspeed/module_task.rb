@@ -35,7 +35,7 @@ module Lightspeed
     end
 
     def define_dylib_task
-      DylibTask.new(dylib_name, source_files, name).define
+      DylibTask.new(dylib_name, source_files, name, module_dependencies: module_dependencies).define
     end
 
     def define_swiftmodule_task

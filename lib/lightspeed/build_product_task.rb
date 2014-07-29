@@ -16,7 +16,7 @@ module Lightspeed
       @config = config
     end
 
-    def define(&block)
+    def define
       dir = directory(build_location)
       file(build_product => dir.name)
     end
