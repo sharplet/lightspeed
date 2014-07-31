@@ -32,7 +32,6 @@ swiftapp 'hello' => 'Greetable' do |app|
   app.source_files = 'main.swift'
 end
 
-CLOBBER.include('bin')
-CLOBBER.include('pkg')
-CLOBBER.include('Build/Products')
-CLEAN.include('Build/Intermediates')
+CLEAN.include('bin')
+CLEAN.include('pkg')
+CLEAN.include('Build')
