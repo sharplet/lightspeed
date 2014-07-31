@@ -39,7 +39,7 @@ module Lightspeed
     end
 
     def define_swiftmodule_task
-      SwiftmoduleTask.new(swiftmodule_name, source_files).define
+      SwiftmoduleTask.new(swiftmodule_name, source_files, module_dependencies: module_dependencies).define
     end
 
     def define_wrapper_task
