@@ -24,9 +24,10 @@ task :default => :build_all
 desc "Build all targets"
 task :build_all => 'hello'
 
+swiftmodule 'Greetable' => ['Hello', 'Rake']
+
 swiftmodule 'Hello'
 swiftmodule 'Rake'
-swiftmodule 'Greetable' => ['Hello', 'Rake']
 
 swiftapp 'hello' => 'Greetable' do |app|
   app.source_files = 'main.swift'

@@ -15,7 +15,8 @@ module Lightspeed
     end
 
     def define
-      build_product = BuildProductTask.new(name).define.enhance(sources + module_dependencies) { |t|
+      build_product = BuildProductTask.new(name, module_dependencies: module_dependencies).define
+      build_product.enhance(sources) { |t|
         swift '-emit-module', '-o', t.name, '-module-name', module_name, *sources
       }
       ProxyTask.define_task(name => build_product)

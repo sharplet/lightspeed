@@ -5,13 +5,12 @@ require_relative 'build_product_task'
 module Lightspeed
   class ExecutableTask < BuildProductTask
 
-    attr_reader :source_files, :module_dependencies
+    attr_reader :source_files
 
-    def initialize(name, source_files: FileList.new, module_dependencies: [], config: nil)
+    def initialize(name, source_files: FileList.new, module_dependencies: [], config: Lightspeed.configuration)
       fail ArgumentError, "At least one source file required" if source_files.empty?
       @source_files = source_files
-      @module_dependencies = module_dependencies
-      super(name, config: config)
+      super(name, module_dependencies: module_dependencies, config: config)
     end
 
     def define

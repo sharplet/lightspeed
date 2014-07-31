@@ -17,12 +17,13 @@ module Lightspeed
     end
 
     def define
-      build_product = create_build_product(module_dependencies + source_files)
+      build_product = create_build_product(source_files)
       ProxyTask.define_task(name => build_product)
     end
 
     def create_build_product(deps)
-      BuildProductTask.new(name).define.enhance(deps) { |t|
+      build_product = BuildProductTask.new(name, module_dependencies: module_dependencies).define
+      build_product.enhance(deps) { |t|
         module_name = t.name.pathmap("%n").sub(/^lib/, '')
         linker_opts = module_dependencies.map { |m| "-l#{m}" }
         swift '-emit-library', '-o', t.name, '-module-name', module_name, *linker_opts, *source_files
