@@ -3,21 +3,21 @@
 
 require 'rake'
 require 'rake/tasklib'
-require_relative 'proxy_task'
 require_relative 'dylib_task'
+require_relative 'linkable_node'
+require_relative 'proxy_task'
 
 module Lightspeed
 
-  class ModuleTask < Rake::TaskLib
+  class ModuleTask < LinkableNode
+    include Rake::DSL
 
     attr_accessor :dylib_name, :swiftmodule_name, :source_files
 
-    attr_reader :name, :module_dependencies
+    alias_method :module_dependencies, :children
 
-    def initialize(*args)
-      name, _, deps = *Rake.application.resolve_args(*args)
-      @name = name
-      @module_dependencies = deps
+    def initialize(name, deps = [])
+      super(name, deps)
       @dylib_name = dylib_for_module(name)
       @swiftmodule_name = name.ext('.swiftmodule')
       @source_files = FileList["#{name}/**/*.swift"]

@@ -13,7 +13,10 @@ module Lightspeed
     # Hello.swiftmodule.
     #
     def swiftmodule(*args)
-      ModuleTask.new(args).define
+      name, _, deps = *Rake.application.resolve_args(args)
+      mod = ModuleTask.define(name, deps)
+      yield mod if block_given?
+      mod.define
     end
 
     # Define a group of tasks for building a swift executable.
@@ -29,7 +32,8 @@ module Lightspeed
     # and link against the compiled modules.
     #
     def swiftapp(*args)
-      app = AppTask.new(*args)
+      name, _, deps = *Rake.application.resolve_args(args)
+      app = AppTask.define(name, deps)
       yield app if block_given?
       app.define
     end

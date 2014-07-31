@@ -2,18 +2,18 @@
 
 require 'rake/tasklib'
 require_relative 'executable_task'
+require_relative 'linkable_node'
 
 module Lightspeed
-  class AppTask < Rake::TaskLib
+  class AppTask < LinkableNode
+    include Rake::DSL
 
     attr_accessor :source_files, :config
 
-    attr_reader :name, :module_dependencies
+    alias_method :module_dependencies, :children
 
-    def initialize(*args, config: Lightspeed.configuration)
-      name, _, deps = *Rake.application.resolve_args(args)
-      @name = name
-      @module_dependencies = deps
+    def initialize(name, deps = [], config: Lightspeed.configuration)
+      super(name, deps)
       @config = config
     end
 
@@ -35,7 +35,7 @@ module Lightspeed
 
     def executable_task
       executable = ExecutableTask.new(name, source_files: source_files,
-                                            module_dependencies: module_dependencies,
+                                            module_dependencies: ->{ modules },
                                             config: config)
       executable.define.enhance(module_dependencies)
     end
