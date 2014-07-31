@@ -2,6 +2,7 @@
 
 require 'rake/tasklib'
 require_relative 'executable_task'
+require_relative 'future_list'
 require_relative 'linkable_node'
 
 module Lightspeed
@@ -35,7 +36,7 @@ module Lightspeed
 
     def executable_task
       executable = ExecutableTask.new(name, source_files: source_files,
-                                            module_dependencies: ->{ modules },
+                                            module_dependencies: FutureList.new { modules },
                                             config: config)
       executable.define.enhance(module_dependencies)
     end

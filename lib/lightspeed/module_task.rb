@@ -14,8 +14,6 @@ module Lightspeed
 
     attr_accessor :dylib_name, :swiftmodule_name, :source_files
 
-    alias_method :module_dependencies, :children
-
     def initialize(name, deps = [])
       super(name, deps)
       @dylib_name = dylib_for_module(name)
@@ -29,17 +27,18 @@ module Lightspeed
     end
 
     def define
-      define_dylib_task
-      define_swiftmodule_task
+      module_deps = FutureList.new { modules }
+      define_dylib_task(module_deps)
+      define_swiftmodule_task(module_deps)
       define_wrapper_task
     end
 
-    def define_dylib_task
-      DylibTask.new(dylib_name, source_files, name, module_dependencies: module_dependencies).define
+    def define_dylib_task(module_deps)
+      DylibTask.new(dylib_name, source_files, name, module_dependencies: module_deps).define
     end
 
-    def define_swiftmodule_task
-      SwiftmoduleTask.new(swiftmodule_name, source_files, module_dependencies: module_dependencies).define
+    def define_swiftmodule_task(module_deps)
+      SwiftmoduleTask.new(swiftmodule_name, source_files, module_dependencies: module_deps).define
     end
 
     def define_wrapper_task
