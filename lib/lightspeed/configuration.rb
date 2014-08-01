@@ -28,7 +28,8 @@ module Lightspeed
     attr_accessor :sdk
 
     # Build locations
-    attr_accessor :build_dir, :build_products_dir, :build_intermediates_dir
+    attr_accessor :build_dir, :executables_dir
+    alias_method :build_products_dir, :build_dir
 
 
     ### Initialization
@@ -71,16 +72,8 @@ module Lightspeed
 
     ### Build locations
 
-    def self.build_products_dir
-      instance.build_products_dir
-    end
-
-    def build_intermediates_dir
-      @build_intermediates_dir ||= "#{build_dir}/Intermediates"
-    end
-
-    def build_products_dir
-      @build_products_dir ||= "#{build_dir}/Products"
+    def executables_dir
+      @executables_dir ||= "bin"
     end
 
   end

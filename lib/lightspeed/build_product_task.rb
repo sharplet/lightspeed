@@ -7,18 +7,22 @@ require 'rake/tasklib'
 require_relative 'configuration'
 
 module Lightspeed
+
   class BuildProductTask < Rake::TaskLib
 
-    attr_reader :name, :config
+    attr_reader :name, :module_dependencies, :config
 
-    def initialize(name, config: Configuration.instance)
+    def initialize(name, module_dependencies: [], config: Configuration.instance)
       @name = name
       @config = config
+      @module_dependencies = module_dependencies
     end
 
-    def define(&block)
+    def define
       dir = directory(build_location)
-      file(build_product => dir.name)
+      compile = file(build_product => dir.name)
+      compile.prerequisite_modules = module_dependencies
+      compile
     end
 
     def build_product
@@ -29,5 +33,20 @@ module Lightspeed
       build_product.pathmap("%d")
     end
 
+    private
+
+    def file(*args, &block)
+      BuildProductCompilationTask.define_task(*args, &block)
+    end
+
   end
+
+  class BuildProductCompilationTask < Rake::FileTask
+    attr_accessor :prerequisite_modules
+    def invoke_with_call_chain(*args)
+      enhance(prerequisite_modules || [])
+      super(*args)
+    end
+  end
+
 end

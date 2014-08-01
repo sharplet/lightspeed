@@ -15,24 +15,24 @@ Lightspeed.configure do |c|
 
   c.build_dir = 'Build' # default value
 
+  c.executables_dir = 'bin' # default value
+
 end
 
-task :default => :build
+task :default => :build_all
 
-desc "Build executable hello and all modules"
-task :build => 'bin/hello'
+desc "Build all targets"
+task :build_all => 'hello'
+
+swiftmodule 'Greetable' => ['Hello', 'Rake']
 
 swiftmodule 'Hello'
 swiftmodule 'Rake'
 
-directory 'bin'
-file 'bin/hello' => ['main.swift', 'bin', 'Hello', 'Rake'] do |t|
-  main, _, *modules = *t.sources
-  linker_opts = modules.map {|m| "-l#{m}" }
-  swift '-o', t.name, *linker_opts, main
+swiftapp 'hello' => 'Greetable' do |app|
+  app.source_files = 'main.swift'
 end
 
-CLOBBER.include('bin')
-CLOBBER.include('pkg')
-CLOBBER.include('Build/Products')
-CLEAN.include('Build/Intermediates')
+CLEAN.include('bin')
+CLEAN.include('pkg')
+CLEAN.include('Build')

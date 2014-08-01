@@ -3,39 +3,47 @@
 
 require 'rake'
 require 'rake/tasklib'
-require_relative 'proxy_task'
 require_relative 'dylib_task'
+require_relative 'linkable_node'
+require_relative 'proxy_task'
 
 module Lightspeed
 
-  class ModuleTask < Rake::TaskLib
+  class ModuleTask < LinkableNode
+    include Rake::DSL
 
-    attr_accessor :module_name, :dylib_name, :swiftmodule_name, :source_files
+    attr_accessor :dylib_name, :swiftmodule_name, :source_files
 
-    def initialize(module_name, source_files)
-      @module_name = module_name
-      @dylib_name = dylib_for_module(module_name)
-      @swiftmodule_name = module_name.ext('.swiftmodule')
-      @source_files = source_files
+    def initialize(name, deps = [])
+      super(name, deps)
+      @dylib_name = dylib_for_module(name)
+      @swiftmodule_name = name.ext('.swiftmodule')
+      @source_files = FileList["#{name}/**/*.swift"]
+    end
+
+    def source_files=(*args)
+      patterns = args.flatten
+      @source_files = FileList[*patterns]
     end
 
     def define
-      define_dylib_task
-      define_swiftmodule_task
+      module_deps = FutureList.new { modules }
+      define_dylib_task(module_deps)
+      define_swiftmodule_task(module_deps)
       define_wrapper_task
     end
 
-    def define_dylib_task
-      DylibTask.new(dylib_name, source_files, module_name).define
+    def define_dylib_task(module_deps)
+      DylibTask.new(dylib_name, source_files, name, module_dependencies: module_deps).define
     end
 
-    def define_swiftmodule_task
-      SwiftmoduleTask.new(swiftmodule_name, source_files).define
+    def define_swiftmodule_task(module_deps)
+      SwiftmoduleTask.new(swiftmodule_name, source_files, module_dependencies: module_deps).define
     end
 
     def define_wrapper_task
-      desc "Build module '#{module_name}'"
-      ProxyTask.define_task(module_name => [dylib_name, swiftmodule_name])
+      desc "Build module '#{name}'"
+      ProxyTask.define_task(name => [dylib_name, swiftmodule_name])
     end
 
     private
