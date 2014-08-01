@@ -1,6 +1,6 @@
 # Swift extensions for the FileUtils module.
 
-require_relative '../configuration'
+require_relative '../swift_command'
 
 module FileUtils
 
@@ -11,18 +11,14 @@ module FileUtils
   #   swift "Hello.rake -o hello"
   #
   def swift(*args)
-    sdk_opts = ['-sdk', Lightspeed.configuration.sdk]
-    build_products = Lightspeed.configuration.build_products_dir
-    linker_opts = ["-L#{build_products}"]
-    module_opts = ["-I#{build_products}"]
-
-    all_opts = sdk_opts + linker_opts + module_opts + args
-
-    if args.count == 1 && args.first.to_s.include?(" ")
-      sh "xcrun swift #{all_opts.join(" ")}"
-    else
-      sh "xcrun", "swift", *all_opts
+    Lightspeed::SwiftCommand.new(args).build do |*cmd|
+      sh(*cmd)
     end
+  end
+
+  # If a file exists, return the argument, otherwise return nil.
+  def ensure_exists(file)
+    File.exist?(file) ? file : nil
   end
 
 end
