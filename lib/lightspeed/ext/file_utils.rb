@@ -16,4 +16,9 @@ module FileUtils
     end
   end
 
+  # If a file exists, return the argument, otherwise return nil.
+  def ensure_exists(file)
+    File.exist?(file) ? file : nil
+  end
+
 end

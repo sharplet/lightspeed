@@ -2,6 +2,7 @@
 
 module Lightspeed
   class SwiftCommand
+    include FileUtils
 
     attr_reader :args, :config
 
@@ -36,11 +37,22 @@ module Lightspeed
     end
 
     def linker_opts
-      ["-L#{config.build_products_dir}"]
+      [ *map_if?(build_dir) { |dir| "-L#{dir}" } ]
     end
 
     def import_opts
-      ["-I#{config.build_products_dir}"]
+      [ *map_if?(build_dir) { |dir| "-I#{dir}" } ]
+    end
+
+    def build_dir
+      ensure_exists(config.build_products_dir)
+    end
+
+    # If the value is truthy, map with the provided block, else return nil.
+    def map_if?(val, &block)
+      if val
+        yield val
+      end
     end
 
   end
