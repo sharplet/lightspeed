@@ -18,11 +18,10 @@ module Lightspeed
     end
 
     def build
-      cmd = format_cmd
       if block_given?
-        yield *cmd
+        yield *format_cmd
       else
-        cmd
+        format_cmd
       end
     end
 
