@@ -1,6 +1,8 @@
 require 'rake/tasklib'
 require 'json'
 
+require_relative 'framework_structure_task'
+
 module Lightspeed
   class FrameworkTask < Rake::TaskLib
 
@@ -16,10 +18,11 @@ module Lightspeed
     end
 
     def define
-      base = directory("#{config.build_products_dir}/#{name}").name
-      current = directory("#{base}/Versions/A").name
-      modules = directory("#{current}/Modules/#{basename}.swiftmodule").name unless swift_sources.empty?
-      headers = directory("#{current}/Headers").name unless header_files.empty?
+      structure_task = FrameworkStructureTask.new("#{name}:structure", framework_path) { |f|
+        f.swift_sources = swift_sources
+        f.header_files = header_files
+      }
+      structure_task.define
 
       build_dir = directory(config.target_build_dir(basename)).name
       output_file_map = "#{build_dir}/output-file-map.json"
@@ -39,7 +42,7 @@ module Lightspeed
       swiftc_task = task("#{name}:swift_objects" => [output_file_map, *object_dirs, *swift_sources]) { |t|
         swift "-c",
           "-module-name", basename,
-          "-emit-module", "-emit-module-path", "#{modules}/#{arch}.swiftmodule",
+          "-emit-module", "-emit-module-path", "#{structure_task.modules_path}/#{arch}.swiftmodule",
           "-output-file-map", output_file_map,
           "--", *swift_sources
       }
@@ -52,34 +55,21 @@ module Lightspeed
 
       object_files.each { |object| file(object => swiftc_task) }
 
-      linker_task = file("#{current}/#{basename}" => [current, *object_files]) { |t|
+      linker_task = file("#{structure_task.latest_version_path}/#{basename}" => [structure_task.latest_version_path, *object_files]) { |t|
         swift "-emit-library", "-o", t.name, "--", *object_files
       }
 
-      current_version = file("#{base}/Versions/Current" => "#{base}/Versions/A") { |t|
-        ln_s t.source.pathmap("%n"), t.name
-      }
-      executable_link = file("#{base}/#{basename}") { |t|
-        ln_s "Versions/Current/#{basename}", t.name
-      }
-      modules_link = file("#{base}/Modules") { |t|
-        ln_s "Versions/Current/Modules", t.name
-      } unless swift_sources.empty?
-      headers_link = file("#{base}/Headers") { |t|
-        ln_s "Versions/Current/Headers", t.name
-      } unless header_files.empty?
+      ProxyTask.define_task(name => [structure_task.name, linker_task])
+    end
 
-      dirs = [base, current, modules, headers].compact
-      links = [current_version, executable_link, modules_link, headers_link].compact
-
-      structure = ProxyTask.define_task("#{name}:structure" => [*dirs, *links])
-
-      ProxyTask.define_task(name => [structure, linker_task])
+    def framework_path
+      File.join(config.build_products_dir, name)
     end
 
     def source_files
       @source_files ||= FileList.new
     end
+
     def source_files=(*args)
       @source_files = FileList[*args.flatten]
     end
