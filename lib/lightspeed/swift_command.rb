@@ -4,10 +4,16 @@ module Lightspeed
   class SwiftCommand
     include FileUtils
 
-    attr_reader :args, :config
+    COMPILER_MODES = {
+      compiled: 'swiftc',
+      immediate: 'swift',
+    }
 
-    def initialize(args, config: Lightspeed.configuration)
+    attr_reader :args, :mode, :config
+
+    def initialize(args, mode: :compiled, config: Lightspeed.configuration)
       @args = args
+      @mode = COMPILER_MODES.fetch(mode) { fail ArgumentError, "unsupported swift compiler mode '#{mode}'" }
       @config = config
     end
 
@@ -24,7 +30,7 @@ module Lightspeed
 
     def format_cmd
       other_opts = framework_opts + linker_opts + import_opts + args
-      cmd = ['xcrun', *sdk_opts, 'swiftc', *other_opts]
+      cmd = ['xcrun', *sdk_opts, mode, *other_opts]
       if args.count == 1 && args.first.to_s.include?(" ")
         cmd = cmd.join(" ")
       else
