@@ -7,6 +7,13 @@ require_relative 'module_task'
 module Lightspeed
   module DSL
 
+    def framework(*args)
+      name, _, deps = *Rake.application.resolve_args(args)
+      f = FrameworkTask.new(name)
+      yield f if block_given?
+      f.define
+    end
+
     # Define a group of tasks for building a swift module. For example,
     # given a module with the name 'Hello', this tasks prerequisites
     # will be a dynamic library libHello.dylib and a swiftmodule file

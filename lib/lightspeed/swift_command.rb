@@ -23,7 +23,7 @@ module Lightspeed
     private
 
     def format_cmd
-      all_opts = sdk_opts + linker_opts + import_opts + args
+      all_opts = sdk_opts + framework_opts + linker_opts + import_opts + args
       cmd = ['xcrun', 'swiftc', *all_opts]
       if args.count == 1 && args.first.to_s.include?(" ")
         cmd = cmd.join(" ")
@@ -34,6 +34,10 @@ module Lightspeed
 
     def sdk_opts
       ['-sdk', config.sdk]
+    end
+
+    def framework_opts
+      [ *map_if?(build_dir) { |dir| "-F#{dir}" } ]
     end
 
     def linker_opts

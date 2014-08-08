@@ -3,6 +3,7 @@
 # Tasks
 require_relative 'lightspeed/build_product_task'
 require_relative 'lightspeed/dylib_task'
+require_relative 'lightspeed/framework_task'
 require_relative 'lightspeed/module_task'
 require_relative 'lightspeed/proxy_task'
 require_relative 'lightspeed/swiftmodule_task'
