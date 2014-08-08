@@ -21,10 +21,22 @@ module Lightspeed
       structure_task = FrameworkStructureTask.new("#{name}:structure", framework_path) { |f|
         f.swift_sources = swift_sources
         f.header_files = header_files
-      }
-      structure_task.define
+      }.define
 
       build_dir = directory(config.target_build_dir(basename)).name
+      swiftmodule_path = "#{structure_task.modules_path}/#{arch}.swiftmodule"
+      dynamic_library_path = "#{structure_task.latest_version_path}/#{basename}"
+
+      object_files = compile_objects(build_dir, swiftmodule_path)
+
+      linker_task = file(dynamic_library_path => [structure_task.latest_version_path, *object_files]) { |t|
+        swift "-emit-library", "-o", t.name, "--", *object_files
+      }
+
+      ProxyTask.define_task(name => [structure_task.name, linker_task])
+    end
+
+    def compile_objects(build_dir, swiftmodule_path)
       output_file_map = "#{build_dir}/output-file-map.json"
       sources_to_objects  = swift_sources.reduce({}) { |dict, source|
         dict.merge({ source => source.pathmap("%{,#{build_dir}/}X.o") })
@@ -42,7 +54,7 @@ module Lightspeed
       swiftc_task = task("#{name}:swift_objects" => [output_file_map, *object_dirs, *swift_sources]) { |t|
         swift "-c",
           "-module-name", basename,
-          "-emit-module", "-emit-module-path", "#{structure_task.modules_path}/#{arch}.swiftmodule",
+          "-emit-module", "-emit-module-path", swiftmodule_path,
           "-output-file-map", output_file_map,
           "--", *swift_sources
       }
@@ -54,12 +66,6 @@ module Lightspeed
       end
 
       object_files.each { |object| file(object => swiftc_task) }
-
-      linker_task = file("#{structure_task.latest_version_path}/#{basename}" => [structure_task.latest_version_path, *object_files]) { |t|
-        swift "-emit-library", "-o", t.name, "--", *object_files
-      }
-
-      ProxyTask.define_task(name => [structure_task.name, linker_task])
     end
 
     def framework_path
