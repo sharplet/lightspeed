@@ -48,25 +48,6 @@ module Lightspeed
 
     ### SDK paths
 
-    def sdk
-      resolve_sdk
-    end
-
-    def sdk=(new_sdk)
-      @resolved_sdk = nil
-      @sdk = new_sdk
-    end
-
-    def resolve_sdk
-      @resolved_sdk ||=
-        case @sdk
-        when :macosx, :iphoneos, :iphonesimulator
-          %x(xcrun --sdk #{@sdk.to_s} --show-sdk-path).chomp
-        else
-          fail "Unknown SDK Error"
-        end
-    end
-
     def self.sdk
       instance.sdk
     end

@@ -23,8 +23,8 @@ module Lightspeed
     private
 
     def format_cmd
-      all_opts = sdk_opts + framework_opts + linker_opts + import_opts + args
-      cmd = ['xcrun', 'swiftc', *all_opts]
+      other_opts = framework_opts + linker_opts + import_opts + args
+      cmd = ['xcrun', *sdk_opts, 'swiftc', *other_opts]
       if args.count == 1 && args.first.to_s.include?(" ")
         cmd = cmd.join(" ")
       else
@@ -33,7 +33,7 @@ module Lightspeed
     end
 
     def sdk_opts
-      ['-sdk', config.sdk]
+      ['-sdk', config.sdk.to_s]
     end
 
     def framework_opts
