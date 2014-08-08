@@ -24,7 +24,7 @@ module Lightspeed
 
     def format_cmd
       all_opts = sdk_opts + linker_opts + import_opts + args
-      cmd = ['xcrun', 'swift', *all_opts]
+      cmd = ['xcrun', 'swiftc', *all_opts]
       if args.count == 1 && args.first.to_s.include?(" ")
         cmd = cmd.join(" ")
       else
