@@ -31,7 +31,7 @@ module Lightspeed
     end
 
     def dirs
-      [path, latest_version_path, modules_path, headers_path].compact
+      @dirs ||= [path, latest_version_path, modules_path, headers_path].compact
     end
     private :dirs
 
@@ -60,19 +60,19 @@ module Lightspeed
     ## Framework paths
 
     def latest_version_path
-      File.join(path, "Versions", "A")
+      @latest_version_path ||= File.join(path, "Versions", "A")
     end
 
     def modules_path
-      File.join(latest_version_path, "Modules", "#{basename}.swiftmodule") unless swift_sources.empty?
+      @modules_path ||= File.join(latest_version_path, "Modules", "#{basename}.swiftmodule") unless swift_sources.empty?
     end
 
     def headers_path
-      File.join(latest_version_path, "Headers") unless header_files.empty?
+      @headers_path ||= File.join(latest_version_path, "Headers") unless header_files.empty?
     end
 
     def current_version_path
-      File.join(path, "Versions", "Current")
+      @current_version_path ||= File.join(path, "Versions", "Current")
     end
 
     ## Default values
