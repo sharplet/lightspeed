@@ -25,7 +25,7 @@ desc "Build all targets"
 task :build_all => ['hello', 'lspd']
 
 framework 'Lightspeed' do |f|
-  f.source_files = 'Hello/**/*.swift'
+  f.source_files = 'Hello/**/*.{h,c,swift}', 'Lightspeed.h'
 end
 
 swiftapp 'lspd' do |lspd|

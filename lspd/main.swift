@@ -1,3 +1,6 @@
 import Lightspeed
+import Foundation
+
 let greeting = Hello()
-println("\(greeting), Lightspeed!")
+let planet = NSString(UTF8String: earth())
+println("\(greeting), Lightspeed -- Welcome to \(planet)!")

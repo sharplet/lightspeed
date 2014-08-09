@@ -19,6 +19,7 @@ module Lightspeed
 
     def define
       define_directory_tasks
+      define_header_tasks
       define_link_tasks
       define_proxy_task
       self
@@ -31,9 +32,41 @@ module Lightspeed
     end
 
     def dirs
-      @dirs ||= [path, latest_version_path, modules_path, headers_path].compact
+      @dirs ||= [path, latest_version_path, modules_path, swiftmodules_path, headers_path].compact
     end
     private :dirs
+
+    ## Copy header files
+
+    def define_header_tasks
+      @headers = header_files.map { |header|
+        header_name = header.pathmap("%f")
+        header_path = File.join(headers_path, header_name)
+        file(header_path => [header, headers_path]) do |t|
+          cp t.source, t.name
+        end
+        header_path
+      }
+
+      if umbrella_header = @headers.find { |header| header.pathmap("%n") == basename }
+        modulemap_path = File.join(modules_path, "module.modulemap")
+        file(modulemap_path => [umbrella_header, modules_path]) do |t|
+          contents = <<-EOS
+framework module #{basename} {
+  umbrella header "#{t.source.pathmap("%f")}"
+
+  export *
+  module * { export * }
+}
+EOS
+          File.write(t.name, contents)
+        end
+        @headers.push(modulemap_path)
+      end
+    end
+
+    attr_reader :headers
+    private     :headers
 
     ## Create links
 
@@ -43,8 +76,10 @@ module Lightspeed
           ln_s t.source.pathmap("%n"), t.name
         },
         file("#{path}/#{basename}") { |t| ln_s "Versions/Current/#{basename}", t.name },
-        (file("#{path}/Modules") { |t| ln_s "Versions/Current/Modules", t.name } unless swift_sources.empty?),
-        (file("#{path}/Headers") { |t| ln_s "Versions/Current/Headers", t.name } unless header_files.empty?),
+        (file("#{path}/Modules") { |t|
+          ln_s "Versions/Current/Modules", t.name } unless (header_files + swift_sources).empty?),
+        (file("#{path}/Headers") { |t|
+          ln_s "Versions/Current/Headers", t.name } unless header_files.empty?),
       ].compact.map(&:name)
     end
 
@@ -54,7 +89,7 @@ module Lightspeed
     ## Create proxy task
 
     def define_proxy_task
-      ProxyTask.define_task(name => [*dirs, *links])
+      ProxyTask.define_task(name => [*dirs, *headers, *links].compact)
     end
 
     ## Framework paths
@@ -64,7 +99,11 @@ module Lightspeed
     end
 
     def modules_path
-      @modules_path ||= File.join(latest_version_path, "Modules", "#{basename}.swiftmodule") unless swift_sources.empty?
+      @modules_path ||= File.join(latest_version_path, "Modules") unless header_files.empty?
+    end
+
+    def swiftmodules_path
+      @swiftmodules_path ||= File.join(modules_path, basename.ext('.swiftmodule')) unless swift_sources.empty?
     end
 
     def headers_path

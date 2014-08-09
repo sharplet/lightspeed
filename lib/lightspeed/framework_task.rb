@@ -24,7 +24,7 @@ module Lightspeed
       }.define
 
       build_dir = directory(config.target_build_dir(basename)).name
-      swiftmodule_path = File.join(structure_task.modules_path, "#{arch}.swiftmodule")
+      swiftmodule_path = File.join(structure_task.swiftmodules_path, "#{arch}.swiftmodule")
       object_files = compile_objects(build_dir, swiftmodule_path)
 
       dynamic_library_path = File.join(structure_task.latest_version_path, basename)
@@ -37,20 +37,22 @@ module Lightspeed
 
     def compile_objects(build_dir, swiftmodule_path)
       output_file_map = File.join(build_dir, "output-file-map.json")
-      sources_to_objects  = swift_sources.reduce({}) { |dict, source|
+      object_map = (swift_sources + other_sources).reduce({}) { |dict, source|
         dict.merge({ source => source.pathmap("%{,#{build_dir}/}X.o") })
       }
+      swift_object_map, other_object_map = object_map.partition { |source, object| File.extname(source) == ".swift" }
+
       file(output_file_map => [*swift_sources, build_dir]) do |t|
-        dict = sources_to_objects.reduce({}) { |dict, (source, object)|
+        dict = swift_object_map.reduce({}) { |dict, (source, object)|
           dict.merge({ source => { "object" => object } })
         }
         File.write(t.name, dict.to_json + "\n")
       end
 
-      object_files = sources_to_objects.values
-      object_dirs = FileList[object_files].pathmap("%d").each { |d| directory(d) }
+      swift_object_files = swift_object_map.map(&:last)
+      swift_object_dirs = FileList[swift_object_files].pathmap("%d").uniq.each { |d| directory(d) }
 
-      swiftc_task = task("#{name}:swift_objects" => [output_file_map, *object_dirs, *swift_sources]) { |t|
+      swiftc_task = task("#{name}:swift_objects" => [output_file_map, *swift_object_dirs, *swift_sources]) { |t|
         swift "-c",
           "-module-name", basename,
           "-emit-module", "-emit-module-path", swiftmodule_path,
@@ -59,12 +61,26 @@ module Lightspeed
       }
 
       swiftc_task.define_singleton_method(:needed?) do
-        sources_to_objects.reduce(false) { |needed, (source, object)|
+        swift_object_map.reduce(false) { |needed, (source, object)|
           needed ? true : Rake::Task[source].timestamp > Rake::Task[object].timestamp
         }
       end
 
-      object_files.each { |object| file(object => swiftc_task) }
+      swift_object_files.each { |object| file(object => swiftc_task) }
+
+      other_object_files = other_object_map.map { |source, object|
+        file(object => [source, directory(object.pathmap("%d")).name]) do |t|
+          sh *%W[
+            xcrun -sdk macosx clang -c
+            -fmodules -fmodule-implementation-of #{basename}
+            -o #{t.name}
+            -- #{t.source}
+          ]
+        end
+        object
+      }
+
+      other_object_files + swift_object_files
     end
 
     def framework_path
@@ -85,6 +101,10 @@ module Lightspeed
 
     def swift_sources
       @swift_sources ||= source_files.select { |f| File.extname(f) == ".swift" }
+    end
+
+    def other_sources
+      @other_sources ||= source_files - header_files - swift_sources
     end
 
   end
