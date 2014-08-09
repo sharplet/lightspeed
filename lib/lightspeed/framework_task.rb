@@ -24,11 +24,10 @@ module Lightspeed
       }.define
 
       build_dir = directory(config.target_build_dir(basename)).name
-      swiftmodule_path = "#{structure_task.modules_path}/#{arch}.swiftmodule"
-      dynamic_library_path = "#{structure_task.latest_version_path}/#{basename}"
-
+      swiftmodule_path = File.join(structure_task.modules_path, "#{arch}.swiftmodule")
       object_files = compile_objects(build_dir, swiftmodule_path)
 
+      dynamic_library_path = File.join(structure_task.latest_version_path, basename)
       linker_task = file(dynamic_library_path => [structure_task.latest_version_path, *object_files]) { |t|
         swift "-emit-library", "-o", t.name, "--", *object_files
       }
@@ -37,7 +36,7 @@ module Lightspeed
     end
 
     def compile_objects(build_dir, swiftmodule_path)
-      output_file_map = "#{build_dir}/output-file-map.json"
+      output_file_map = File.join(build_dir, "output-file-map.json")
       sources_to_objects  = swift_sources.reduce({}) { |dict, source|
         dict.merge({ source => source.pathmap("%{,#{build_dir}/}X.o") })
       }
