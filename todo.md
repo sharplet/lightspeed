@@ -9,6 +9,7 @@
           (though bridging headers no longer make sense)
     - Generate exported Swift headers
     - Link C/ObjC object files into any target
+- Easy intergration of frameworks into playgrounds (installation in system locations)
 - Target-specific build settings
 - Configure, build and run tests with XCTest
 - Automatically add build output to CLEAN if rake/clean is imported
