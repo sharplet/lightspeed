@@ -18,6 +18,8 @@ module Lightspeed
     end
 
     def define
+      fail "#{name}: at least one source file required" if source_files.empty?
+
       structure_task = FrameworkStructureTask.new("#{name}:structure", framework_path) { |f|
         f.swift_sources = swift_sources
         f.header_files = header_files
