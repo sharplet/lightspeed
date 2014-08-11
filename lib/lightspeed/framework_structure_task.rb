@@ -72,13 +72,13 @@ EOS
 
     def define_link_tasks
       @links = [
-        file("#{path}/Versions/Current" => latest_version_path) { |t|
+        file_create("#{path}/Versions/Current" => latest_version_path) { |t|
           ln_s t.source.pathmap("%n"), t.name
         },
-        file("#{path}/#{basename}") { |t| ln_s "Versions/Current/#{basename}", t.name },
-        (file("#{path}/Modules") { |t|
+        file_create("#{path}/#{basename}") { |t| ln_s "Versions/Current/#{basename}", t.name },
+        (file_create("#{path}/Modules") { |t|
           ln_s "Versions/Current/Modules", t.name } unless (header_files + swift_sources).empty?),
-        (file("#{path}/Headers") { |t|
+        (file_create("#{path}/Headers") { |t|
           ln_s "Versions/Current/Headers", t.name } unless header_files.empty?),
       ].compact.map(&:name)
     end
