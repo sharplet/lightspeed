@@ -1,6 +1,7 @@
 require 'rake'
 require 'rake/tasklib'
 
+require_relative 'symlink_creation_task'
 require_relative 'proxy_task'
 
 module Lightspeed
@@ -72,19 +73,26 @@ EOS
 
     def define_link_tasks
       @links = [
-        file_create("#{path}/Versions/Current" => latest_version_path) { |t|
+        symlink_create("#{path}/Versions/Current" => latest_version_path) { |t|
           ln_s t.source.pathmap("%n"), t.name
         },
-        file_create("#{path}/#{basename}") { |t| ln_s "Versions/Current/#{basename}", t.name },
-        (file_create("#{path}/Modules") { |t|
+        symlink_create("#{path}/#{basename}" => "#{path}/Versions/Current") { |t|
+          ln_s "Versions/Current/#{basename}", t.name
+        },
+        (symlink_create("#{path}/Modules") { |t|
           ln_s "Versions/Current/Modules", t.name } unless (header_files + swift_sources).empty?),
-        (file_create("#{path}/Headers") { |t|
+        (symlink_create("#{path}/Headers") { |t|
           ln_s "Versions/Current/Headers", t.name } unless header_files.empty?),
       ].compact.map(&:name)
     end
 
     attr_reader :links
     private     :links
+
+    def symlink_create(*args, &block)
+      Lightspeed::SymlinkCreationTask.define_task(*args, &block)
+    end
+    private :symlink_create
 
     ## Create proxy task
 
