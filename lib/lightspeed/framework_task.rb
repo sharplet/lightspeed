@@ -117,7 +117,7 @@ EOS
     end
 
     def source_files
-      @source_files ||= FileList.new
+      @source_files ||= FileList["#{basename}/**/*.{h,c,swift}"]
     end
 
     def source_files=(*args)
