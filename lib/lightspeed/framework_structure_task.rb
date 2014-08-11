@@ -107,7 +107,7 @@ EOS
     end
 
     def modules_path
-      @modules_path ||= File.join(latest_version_path, "Modules") unless header_files.empty?
+      @modules_path ||= File.join(latest_version_path, "Modules") unless header_files.empty? && swift_sources.empty?
     end
 
     def swiftmodules_path
