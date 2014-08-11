@@ -24,19 +24,18 @@ task :default => :build_all
 desc "Build all targets"
 task :build_all => ['lspd']
 
-framework 'Lightspeed' do |f|
-  f.source_files = 'Hello/**/*.{h,c,swift}', 'Lightspeed.h'
-end
-
 swiftapp 'lspd' do |lspd|
   lspd.source_files = 'lspd/main.swift'
 end
-task 'bin/lspd' => 'Lightspeed.framework'
+task 'bin/lspd' => 'Hello.framework'
+
+swiftmodule 'Rake'
+
+framework 'Hello' do |f|
+  f.source_files = 'Hello/**/*.{h,c,swift}'
+end
 
 swiftmodule 'Greetable' => ['Hello', 'Rake']
-
-swiftmodule 'Hello'
-swiftmodule 'Rake'
 
 swiftapp 'hello' => 'Greetable' do |app|
   app.source_files = 'main.swift'
