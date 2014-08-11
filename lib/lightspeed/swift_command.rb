@@ -28,8 +28,7 @@ module Lightspeed
     private
 
     def format_cmd
-      other_opts = framework_opts + linker_opts + import_opts + args
-      cmd = ['xcrun', *sdk_opts, mode, *other_opts]
+      cmd = ['xcrun', *sdk_opts, mode, *framework_opts, *args]
       if args.count == 1 && args.first.to_s.include?(" ")
         cmd = cmd.join(" ")
       else
@@ -43,14 +42,6 @@ module Lightspeed
 
     def framework_opts
       [ *map_if?(build_dir) { |dir| "-F#{dir}" } ]
-    end
-
-    def linker_opts
-      [ *map_if?(build_dir) { |dir| "-L#{dir}" } ]
-    end
-
-    def import_opts
-      [ *map_if?(build_dir) { |dir| "-I#{dir}" } ]
     end
 
     def build_dir

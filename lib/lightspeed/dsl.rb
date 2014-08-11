@@ -9,7 +9,7 @@ module Lightspeed
 
     def framework(*args)
       name, _, deps = *Rake.application.resolve_args(args)
-      f = FrameworkTask.new(name)
+      f = FrameworkTask.new(name, deps)
       yield f if block_given?
       f.define
     end

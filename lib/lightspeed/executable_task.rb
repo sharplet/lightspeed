@@ -15,8 +15,7 @@ module Lightspeed
 
     def define
       super.enhance(source_files) { |t|
-        linker_opts = module_dependencies.map {|m| "-l#{m}" }
-        swift *linker_opts, '-o', t.name, *source_files
+        swift '-o', t.name, '--', *source_files
       }
     end
 

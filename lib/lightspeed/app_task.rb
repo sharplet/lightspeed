@@ -36,7 +36,7 @@ module Lightspeed
 
     def executable_task
       executable = ExecutableTask.new(name, source_files: source_files,
-                                            module_dependencies: FutureList.new { modules },
+                                            module_dependencies: children,
                                             config: config)
       executable.define.enhance(module_dependencies)
     end

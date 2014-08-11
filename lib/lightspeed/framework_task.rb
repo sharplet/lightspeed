@@ -6,13 +6,14 @@ require_relative 'framework_structure_task'
 module Lightspeed
   class FrameworkTask < Rake::TaskLib
 
-    attr_reader :name, :basename, :config, :arch
+    attr_reader :name, :deps, :basename, :config, :arch
 
     attr_accessor :source_files
 
-    def initialize(name, config: Lightspeed.configuration)
+    def initialize(name, deps = [], config: Lightspeed.configuration)
       @basename = name.pathmap("%n")
       @name = basename.ext(".framework")
+      @deps = deps
       @config = config
       @arch = "x86_64"
     end
@@ -85,7 +86,7 @@ EOS
       swiftmodule_path = File.join(build_dir, basename.ext('.swiftmodule'))
       swiftmodule_files = [swiftmodule_path, swiftmodule_path.ext('.swiftdoc')]
 
-      swiftc_task = task("#{name}:swift_objects" => [output_file_map, *underlying_module_deps, *swift_object_dirs, *swift_sources]) { |t|
+      swiftc_task = task("#{name}:swift_objects" => [output_file_map, *underlying_module_deps, *swift_object_dirs, *swift_sources, *deps]) { |t|
         swift "-c",
           "-module-name", basename,
           "-emit-module", "-emit-module-path", swiftmodule_path,
@@ -103,7 +104,7 @@ EOS
       (swift_object_files + swiftmodule_files).each { |f| file(f => swiftc_task) }
 
       other_object_files = other_object_map.map { |source, object|
-        file(object => [source, directory(object.pathmap("%d")).name]) do |t|
+        file(object => [source, directory(object.pathmap("%d")).name, *deps]) do |t|
           sh *%W[
             xcrun -sdk macosx clang -c
             -fmodules -fmodule-implementation-of #{basename}

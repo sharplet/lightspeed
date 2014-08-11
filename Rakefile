@@ -29,15 +29,11 @@ swiftapp 'lspd' do |lspd|
 end
 task 'bin/lspd' => 'Hello.framework'
 
-swiftmodule 'Rake'
+framework 'Rake'
+framework 'Hello'
+framework 'Greetable' => ['Hello.framework', 'Rake.framework']
 
-framework 'Hello' do |f|
-  f.source_files = 'Hello/**/*.{h,c,swift}'
-end
-
-swiftmodule 'Greetable' => ['Hello', 'Rake']
-
-swiftapp 'hello' => 'Greetable' do |app|
+swiftapp 'hello' => 'Greetable.framework' do |app|
   app.source_files = 'main.swift'
 end
 
