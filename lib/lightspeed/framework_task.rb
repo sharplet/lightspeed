@@ -61,32 +61,35 @@ module Lightspeed
       swift_object_files = swift_object_map.map(&:last)
       swift_object_dirs = FileList[swift_object_files].pathmap("%d").uniq.each { |d| directory(d) }
 
-      underlying_module_path = File.join(build_dir, "underlying-module")
-      underlying_module_header_dir = File.join(underlying_module_path, basename)
-      [underlying_module_path, underlying_module_header_dir].each { |d| directory(d) }
+      if defines_underlying_module?
+        underlying_module_path = File.join(build_dir, "underlying-module")
+        underlying_module_header_dir = File.join(underlying_module_path, basename)
+        [underlying_module_path, underlying_module_header_dir].each { |d| directory(d) }
 
-      underlying_module_map = File.join(underlying_module_path, "module.modulemap")
-      file(underlying_module_map => [*header_files, underlying_module_path, underlying_module_header_dir]) do |t|
-        header_files.each do |header|
-          cp header, underlying_module_header_dir
-        end
-        contents = <<-EOS
+        underlying_module_map = File.join(underlying_module_path, "module.modulemap")
+        file(underlying_module_map => [*header_files, underlying_module_path, underlying_module_header_dir]) do |t|
+          header_files.each do |header|
+            cp header, underlying_module_header_dir
+          end
+          contents = <<-EOS
 module #{basename} {
   umbrella "#{basename}"
   module * { export * }
 }
 EOS
-        File.write(t.name, contents)
+          File.write(t.name, contents)
+        end
       end
+      underlying_module_deps = [underlying_module_map].compact
 
       swiftmodule_path = File.join(build_dir, basename.ext('.swiftmodule'))
       swiftmodule_files = [swiftmodule_path, swiftmodule_path.ext('.swiftdoc')]
 
-      swiftc_task = task("#{name}:swift_objects" => [output_file_map, underlying_module_map, *swift_object_dirs, *swift_sources]) { |t|
+      swiftc_task = task("#{name}:swift_objects" => [output_file_map, *underlying_module_deps, *swift_object_dirs, *swift_sources]) { |t|
         swift "-c",
           "-module-name", basename,
           "-emit-module", "-emit-module-path", swiftmodule_path,
-          "-I#{underlying_module_path}", "-import-underlying-module",
+          *(["-I#{underlying_module_path}", "-import-underlying-module"] if defines_underlying_module?),
           "-output-file-map", output_file_map,
           "--", *swift_sources
       }
@@ -112,6 +115,10 @@ EOS
       }
 
       [(other_object_files + swift_object_files), swiftmodule_files]
+    end
+
+    def defines_underlying_module?
+      ! header_files.empty?
     end
 
     def framework_path
