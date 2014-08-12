@@ -3,6 +3,7 @@ require 'json'
 
 require_relative 'framework_structure_task'
 require_relative 'output_file_map_task'
+require_relative 'underlying_module_task'
 
 module Lightspeed
   class FrameworkTask < Rake::TaskLib
@@ -59,26 +60,13 @@ module Lightspeed
       # Ensure object dirs exist when compiling
       object_dirs.each { |dir| directory(dir) }
 
+      # Build up the underlying module if necessary
       if defines_underlying_module?
-        underlying_module_path = File.join(target_build_dir, "underlying-module")
-        underlying_module_header_dir = File.join(underlying_module_path, basename)
-        [underlying_module_path, underlying_module_header_dir].each { |d| directory(d) }
-
-        underlying_module_map = File.join(underlying_module_path, "module.modulemap")
-        file(underlying_module_map => [*header_files, underlying_module_path, underlying_module_header_dir]) do |t|
-          header_files.each do |header|
-            cp header, underlying_module_header_dir
-          end
-          contents = <<-EOS
-module #{basename} {
-  umbrella "#{basename}"
-  module * { export * }
-}
-EOS
-          File.write(t.name, contents)
-        end
+        mod = UnderlyingModuleTask.new(basename, underlying_module_path, header_files).define
+        underlying_module_deps = [mod.proxy]
+      else
+        underlying_module_deps = []
       end
-      underlying_module_deps = [underlying_module_map].compact
 
       swiftmodule_path = File.join(target_build_dir, basename.ext('.swiftmodule'))
       swiftmodule_files = [swiftmodule_path, swiftmodule_path.ext('.swiftdoc')]
@@ -141,6 +129,10 @@ EOS
 
     def output_file_map_path
       File.join(target_build_dir, "output-file-map.json")
+    end
+
+    def underlying_module_path
+      File.join(target_build_dir, "underlying-module")
     end
 
     def target_build_dir
