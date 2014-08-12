@@ -1,6 +1,8 @@
 # To do
 
 - Build pure swift frameworks
+- Issue: Updating a swift file in a framework won't cause a recompile of
+  an app depending on the framework
 - Build C and Objective-C files
     - Generate a module map with umbrella header to support importing
       C/ObjC code within the same framework (see "unextended-module.modulemap")
