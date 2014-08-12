@@ -11,6 +11,7 @@
 - Define an auto-loading mechanism for deps defined in submodules
 - Easy distribution of binaries (and embedded frameworks?) using
   Homebrew
+- Easy intergration of frameworks into playgrounds (installation in system locations)
 - Target-specific build settings
 - Configure, build and run tests with XCTest
 - Automatically add build output to CLEAN if rake/clean is imported
