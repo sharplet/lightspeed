@@ -42,7 +42,13 @@ module Lightspeed
         swift "-emit-library", "-o", t.name, "--", *object_files
       }
 
-      ProxyTask.define_task(name => [structure_task.name, linker_task, *deps])
+      proxy_task = ProxyTask.define_task(name => [structure_task.name, linker_task])
+
+      # Ensure the appropriate subtasks are rebuilt if the framework's
+      # dependencies change.
+      [name, "#{name}:swift_objects", *other_object_files].each { |t| task(t => deps) }
+
+      proxy_task
     end
 
     def compile_objects
@@ -77,7 +83,7 @@ EOS
       swiftmodule_path = File.join(target_build_dir, basename.ext('.swiftmodule'))
       swiftmodule_files = [swiftmodule_path, swiftmodule_path.ext('.swiftdoc')]
 
-      swiftc_task = task("#{name}:swift_objects" => [output_file_map_path, *underlying_module_deps, *swift_object_dirs, *swift_sources, *deps]) { |t|
+      swiftc_task = task("#{name}:swift_objects" => [output_file_map_path, *underlying_module_deps, *swift_object_dirs, *swift_sources]) { |t|
         swift "-c",
           "-module-name", basename,
           "-emit-module", "-emit-module-path", swiftmodule_path,
@@ -97,7 +103,7 @@ EOS
 
       other_sources.zip(other_object_files).map { |source, object|
         object_dir = object.pathmap("%d")
-        file(object => [source, object_dir, *deps]) do |t|
+        file(object => [source, object_dir]) do |t|
           sh *%W[
             xcrun -sdk #{config.sdk} clang -c
             -fmodules -fmodule-implementation-of #{basename}
