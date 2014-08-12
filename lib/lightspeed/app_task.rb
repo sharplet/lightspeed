@@ -6,15 +6,13 @@ require_relative 'future_list'
 require_relative 'linkable_node'
 
 module Lightspeed
-  class AppTask < LinkableNode
-    include Rake::DSL
+  class AppTask < Rake::TaskLib
 
-    attr_accessor :source_files, :config
-
-    alias_method :module_dependencies, :children
+    attr_accessor :name, :deps, :source_files, :config
 
     def initialize(name, deps = [], config: Lightspeed.configuration)
-      super(name, deps)
+      @name = name
+      @deps = deps
       @config = config
     end
 
@@ -28,17 +26,12 @@ module Lightspeed
     end
 
     def define
-      build_product = executable_task
-
-      desc "Build application '#{name}'"
+      build_dir = directory(config.executables_dir).name
+      build_product = File.join(build_dir, name)
+      file(build_product => [*deps, *source_files, build_dir]) do |t|
+        swift "-o", t.name, "--", *source_files
+      end
       ProxyTask.define_task(name => build_product)
-    end
-
-    def executable_task
-      executable = ExecutableTask.new(name, source_files: source_files,
-                                            module_dependencies: children,
-                                            config: config)
-      executable.define.enhance(module_dependencies)
     end
 
   end

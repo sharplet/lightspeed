@@ -40,7 +40,7 @@ module Lightspeed
     #
     def swiftapp(*args)
       name, _, deps = *Rake.application.resolve_args(args)
-      app = AppTask.define(name, deps)
+      app = AppTask.new(name, deps)
       yield app if block_given?
       app.define
     end

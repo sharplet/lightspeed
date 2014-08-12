@@ -22,12 +22,11 @@ end
 task :default => :build_all
 
 desc "Build all targets"
-task :build_all => ['lspd']
+task :build_all => ['lspd', 'hello']
 
-swiftapp 'lspd' do |lspd|
+swiftapp 'lspd' => 'Hello.framework' do |lspd|
   lspd.source_files = 'lspd/main.swift'
 end
-task 'bin/lspd' => 'Hello.framework'
 
 framework 'Rake'
 framework 'Hello'
