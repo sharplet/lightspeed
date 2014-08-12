@@ -2,6 +2,7 @@ require 'rake/tasklib'
 require 'json'
 
 require_relative 'framework_structure_task'
+require_relative 'output_file_map_task'
 
 module Lightspeed
   class FrameworkTask < Rake::TaskLib
@@ -26,8 +27,7 @@ module Lightspeed
         f.header_files = header_files
       }.define
 
-      build_dir = directory(config.target_build_dir(basename)).name
-      object_files, swiftmodule_files = compile_objects(build_dir)
+      object_files, swiftmodule_files = compile_objects
 
       framework_swiftmodule_files = swiftmodule_files.map { |path|
         framework_path = path.pathmap("%{,#{structure_task.swiftmodules_path}/#{arch}}x")
@@ -45,25 +45,14 @@ module Lightspeed
       ProxyTask.define_task(name => [structure_task.name, linker_task, *deps])
     end
 
-    def compile_objects(build_dir)
-      output_file_map = File.join(build_dir, "output-file-map.json")
-      object_map = (swift_sources + other_sources).reduce({}) { |dict, source|
-        dict.merge({ source => source.pathmap("%{,#{build_dir}/}X.o") })
-      }
-      swift_object_map, other_object_map = object_map.partition { |source, object| File.extname(source) == ".swift" }
+    def compile_objects
+      OutputFileMapTask.new(output_file_map_path, swift_sources, swift_object_files).define
+      file(output_file_map_path => [*source_files, target_build_dir])
 
-      file(output_file_map => [*swift_sources, build_dir]) do |t|
-        dict = swift_object_map.reduce({}) { |dict, (source, object)|
-          dict.merge({ source => { "object" => object } })
-        }
-        File.write(t.name, dict.to_json + "\n")
-      end
-
-      swift_object_files = swift_object_map.map(&:last)
       swift_object_dirs = FileList[swift_object_files].pathmap("%d").uniq.each { |d| directory(d) }
 
       if defines_underlying_module?
-        underlying_module_path = File.join(build_dir, "underlying-module")
+        underlying_module_path = File.join(target_build_dir, "underlying-module")
         underlying_module_header_dir = File.join(underlying_module_path, basename)
         [underlying_module_path, underlying_module_header_dir].each { |d| directory(d) }
 
@@ -83,27 +72,28 @@ EOS
       end
       underlying_module_deps = [underlying_module_map].compact
 
-      swiftmodule_path = File.join(build_dir, basename.ext('.swiftmodule'))
+      swiftmodule_path = File.join(target_build_dir, basename.ext('.swiftmodule'))
       swiftmodule_files = [swiftmodule_path, swiftmodule_path.ext('.swiftdoc')]
 
-      swiftc_task = task("#{name}:swift_objects" => [output_file_map, *underlying_module_deps, *swift_object_dirs, *swift_sources, *deps]) { |t|
+      swiftc_task = task("#{name}:swift_objects" => [output_file_map_path, *underlying_module_deps, *swift_object_dirs, *swift_sources, *deps]) { |t|
         swift "-c",
           "-module-name", basename,
           "-emit-module", "-emit-module-path", swiftmodule_path,
           *(["-I#{underlying_module_path}", "-import-underlying-module"] if defines_underlying_module?),
-          "-output-file-map", output_file_map,
+          "-output-file-map", output_file_map_path,
           "--", *swift_sources
       }
 
+      swift_source_map = swift_sources.zip(swift_object_files)
       swiftc_task.define_singleton_method(:needed?) do
-        swift_object_map.reduce(false) { |needed, (source, object)|
+        swift_source_map.reduce(false) { |needed, (source, object)|
           needed ? true : Rake::Task[source].timestamp > Rake::Task[object].timestamp
         }
       end
 
       (swift_object_files + swiftmodule_files).each { |f| file(f => swiftc_task) }
 
-      other_object_files = other_object_map.map { |source, object|
+      other_sources.zip(other_object_files).map { |source, object|
         file(object => [source, directory(object.pathmap("%d")).name, *deps]) do |t|
           sh *%W[
             xcrun -sdk #{config.sdk} clang -c
@@ -122,8 +112,26 @@ EOS
       ! header_files.empty?
     end
 
+    def object_files_for(source_files)
+      source_files.map(&method(:object_file_for))
+    end
+
+    def object_file_for(source_file, relative_to: target_build_dir)
+      source_file.pathmap("%{,#{relative_to}/}X.o")
+    end
+
+    ## Path & file attributes
+
     def framework_path
       File.join(config.build_products_dir, name)
+    end
+
+    def output_file_map_path
+      File.join(target_build_dir, "output-file-map.json")
+    end
+
+    def target_build_dir
+      directory(config.target_build_dir(basename)).name
     end
 
     def source_files
@@ -142,8 +150,16 @@ EOS
       @swift_sources ||= source_files.select { |f| File.extname(f) == ".swift" }
     end
 
+    def swift_object_files
+      @swift_object_files ||= object_files_for(swift_sources)
+    end
+
     def other_sources
       @other_sources ||= source_files - header_files - swift_sources
+    end
+
+    def other_object_files
+      @other_object_files ||= object_files_for(other_sources)
     end
 
   end
