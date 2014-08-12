@@ -42,7 +42,7 @@ module Lightspeed
         swift "-emit-library", "-o", t.name, "--", *object_files
       }
 
-      ProxyTask.define_task(name => [structure_task.name, linker_task])
+      ProxyTask.define_task(name => [structure_task.name, linker_task, *deps])
     end
 
     def compile_objects(build_dir)
