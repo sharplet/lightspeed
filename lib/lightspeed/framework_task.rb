@@ -106,7 +106,7 @@ EOS
       other_object_files = other_object_map.map { |source, object|
         file(object => [source, directory(object.pathmap("%d")).name, *deps]) do |t|
           sh *%W[
-            xcrun -sdk macosx clang -c
+            xcrun -sdk #{config.sdk} clang -c
             -fmodules -fmodule-implementation-of #{basename}
             -o #{t.name}
             -- #{t.source}
