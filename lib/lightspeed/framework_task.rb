@@ -46,10 +46,12 @@ module Lightspeed
     end
 
     def compile_objects
+      # Generate an output file map for swift objects
       OutputFileMapTask.new(output_file_map_path, swift_sources, swift_object_files).define
       file(output_file_map_path => [*source_files, target_build_dir])
 
-      swift_object_dirs = FileList[swift_object_files].pathmap("%d").uniq.each { |d| directory(d) }
+      # Ensure object dirs exist when compiling
+      object_dirs.each { |dir| directory(dir) }
 
       if defines_underlying_module?
         underlying_module_path = File.join(target_build_dir, "underlying-module")
@@ -94,7 +96,8 @@ EOS
       (swift_object_files + swiftmodule_files).each { |f| file(f => swiftc_task) }
 
       other_sources.zip(other_object_files).map { |source, object|
-        file(object => [source, directory(object.pathmap("%d")).name, *deps]) do |t|
+        object_dir = object.pathmap("%d")
+        file(object => [source, object_dir, *deps]) do |t|
           sh *%W[
             xcrun -sdk #{config.sdk} clang -c
             -fmodules -fmodule-implementation-of #{basename}
@@ -118,6 +121,10 @@ EOS
 
     def object_file_for(source_file, relative_to: target_build_dir)
       source_file.pathmap("%{,#{relative_to}/}X.o")
+    end
+
+    def directories_containing(files)
+      FileList[files].pathmap("%d").uniq
     end
 
     ## Path & file attributes
@@ -154,12 +161,24 @@ EOS
       @swift_object_files ||= object_files_for(swift_sources)
     end
 
+    def swift_object_dirs
+      @swift_object_dirs ||= directories_containing(swift_object_files)
+    end
+
     def other_sources
       @other_sources ||= source_files - header_files - swift_sources
     end
 
     def other_object_files
       @other_object_files ||= object_files_for(other_sources)
+    end
+
+    def other_object_dirs
+      @other_object_dirs ||= directories_containing(other_object_files)
+    end
+
+    def object_dirs
+      @object_dirs ||= (swift_object_dirs + other_object_dirs).uniq
     end
 
   end
