@@ -1,9 +1,6 @@
 # Define tasks to build a swift application.
 
 require 'rake/tasklib'
-require_relative 'executable_task'
-require_relative 'future_list'
-require_relative 'linkable_node'
 
 module Lightspeed
   class AppTask < Rake::TaskLib
