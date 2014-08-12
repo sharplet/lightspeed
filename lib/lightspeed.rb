@@ -13,3 +13,7 @@ require_relative 'lightspeed/dsl'
 
 # Extensions
 require_relative 'lightspeed/ext/file_utils'
+
+# Load user dependencies
+require_relative 'lightspeed/loader'
+Lightspeed::Loader.load
