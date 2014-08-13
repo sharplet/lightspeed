@@ -68,9 +68,6 @@ module Lightspeed
         underlying_module_deps = []
       end
 
-      swiftmodule_path = File.join(target_build_dir, basename.ext('.swiftmodule'))
-      swiftmodule_files = [swiftmodule_path, swiftmodule_path.ext('.swiftdoc')]
-
       swiftc_task = task("#{name}:swift_objects" => [output_file_map_path, *underlying_module_deps, *swift_object_dirs, *swift_sources]) { |t|
         swift "-c",
           "-module-name", basename,
@@ -102,7 +99,7 @@ module Lightspeed
         object
       }
 
-      [(other_object_files + swift_object_files), swiftmodule_files]
+      [object_files, swiftmodule_files]
     end
 
     def defines_underlying_module?
@@ -167,6 +164,10 @@ module Lightspeed
       @other_sources ||= source_files - header_files - swift_sources
     end
 
+    def object_files
+      @object_files ||= swift_object_files + other_object_files
+    end
+
     def other_object_files
       @other_object_files ||= object_files_for(other_sources)
     end
@@ -177,6 +178,18 @@ module Lightspeed
 
     def object_dirs
       @object_dirs ||= (swift_object_dirs + other_object_dirs).uniq
+    end
+
+    def swiftmodule_path
+      @swiftmodule_path ||= File.join(target_build_dir, basename.ext('.swiftmodule'))
+    end
+
+    def swiftdoc_path
+      @swiftdoc_path ||= swiftmodule_path.ext('.swiftdoc')
+    end
+
+    def swiftmodule_files
+      @swiftmodule_files ||= [swiftmodule_path, swiftdoc_path]
     end
 
   end
