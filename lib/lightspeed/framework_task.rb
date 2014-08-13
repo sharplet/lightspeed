@@ -1,12 +1,16 @@
 require 'rake/tasklib'
 require 'json'
 
+require_relative 'compile_utils'
 require_relative 'framework_structure_task'
 require_relative 'output_file_map_task'
+require_relative 'swift_compilation_task'
 require_relative 'underlying_module_task'
 
 module Lightspeed
   class FrameworkTask < Rake::TaskLib
+
+    include CompileUtils
 
     attr_reader :name, :deps, :basename, :config, :arch
 
@@ -53,38 +57,17 @@ module Lightspeed
     end
 
     def compile_objects
-      # Generate an output file map for swift objects
-      OutputFileMapTask.new(output_file_map_path, swift_sources, swift_object_files).define
-      file(output_file_map_path => [*source_files, target_build_dir])
-
       # Ensure object dirs exist when compiling
-      object_dirs.each { |dir| directory(dir) }
+      other_object_dirs.each { |dir| directory(dir) }
 
       # Build up the underlying module if necessary
       if defines_underlying_module?
-        mod = UnderlyingModuleTask.new(basename, underlying_module_path, header_files).define
-        underlying_module_deps = [mod.proxy]
-      else
-        underlying_module_deps = []
+        underlying_module = UnderlyingModuleTask.new(basename, underlying_module_path, header_files).define
       end
 
-      swiftc_task = task("#{name}:swift_objects" => [output_file_map_path, *underlying_module_deps, *swift_object_dirs, *swift_sources]) { |t|
-        swift "-c",
-          "-module-name", basename,
-          "-emit-module", "-emit-module-path", swiftmodule_path,
-          *(["-I#{underlying_module_path}", "-import-underlying-module"] if defines_underlying_module?),
-          "-output-file-map", output_file_map_path,
-          "--", *swift_sources
-      }
+      compile_swift_sources = SwiftCompilationTask.new(target_build_dir, swift_sources, basename, underlying_module).define
 
-      swift_source_map = swift_sources.zip(swift_object_files)
-      swiftc_task.define_singleton_method(:needed?) do
-        swift_source_map.reduce(false) { |needed, (source, object)|
-          needed ? true : Rake::Task[source].timestamp > Rake::Task[object].timestamp
-        }
-      end
-
-      (swift_object_files + swiftmodule_files).each { |f| file(f => swiftc_task) }
+      task(compile_swift_sources.task_name => deps)
 
       other_sources.zip(other_object_files).map { |source, object|
         object_dir = object.pathmap("%d")
@@ -99,33 +82,17 @@ module Lightspeed
         object
       }
 
-      [object_files, swiftmodule_files]
+      [compile_swift_sources.object_files + other_object_files, compile_swift_sources.swiftmodule_files]
     end
 
     def defines_underlying_module?
       ! header_files.empty?
     end
 
-    def object_files_for(source_files)
-      source_files.map(&method(:object_file_for))
-    end
-
-    def object_file_for(source_file, relative_to: target_build_dir)
-      source_file.pathmap("%{,#{relative_to}/}X.o")
-    end
-
-    def directories_containing(files)
-      FileList[files].pathmap("%d").uniq
-    end
-
     ## Path & file attributes
 
     def framework_path
       File.join(config.build_products_dir, name)
-    end
-
-    def output_file_map_path
-      File.join(target_build_dir, "output-file-map.json")
     end
 
     def underlying_module_path
@@ -152,14 +119,6 @@ module Lightspeed
       @swift_sources ||= source_files.select { |f| File.extname(f) == ".swift" }
     end
 
-    def swift_object_files
-      @swift_object_files ||= object_files_for(swift_sources)
-    end
-
-    def swift_object_dirs
-      @swift_object_dirs ||= directories_containing(swift_object_files)
-    end
-
     def other_sources
       @other_sources ||= source_files - header_files - swift_sources
     end
@@ -169,7 +128,7 @@ module Lightspeed
     end
 
     def other_object_files
-      @other_object_files ||= object_files_for(other_sources)
+      @other_object_files ||= object_files_for(other_sources, relative_to: target_build_dir)
     end
 
     def other_object_dirs
@@ -178,18 +137,6 @@ module Lightspeed
 
     def object_dirs
       @object_dirs ||= (swift_object_dirs + other_object_dirs).uniq
-    end
-
-    def swiftmodule_path
-      @swiftmodule_path ||= File.join(target_build_dir, basename.ext('.swiftmodule'))
-    end
-
-    def swiftdoc_path
-      @swiftdoc_path ||= swiftmodule_path.ext('.swiftdoc')
-    end
-
-    def swiftmodule_files
-      @swiftmodule_files ||= [swiftmodule_path, swiftdoc_path]
     end
 
   end
