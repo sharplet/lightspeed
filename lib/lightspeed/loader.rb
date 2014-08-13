@@ -22,7 +22,7 @@ module Lightspeed
     end
 
     def load
-      depfiles.map { |path| [path, File.read(path)] }.each do |file, contents|
+      depfiles.map { |path| [File.expand_path(path), File.read(path)] }.each do |file, contents|
         dsl_proxy.instance_eval(contents, file)
       end
     end
