@@ -39,11 +39,11 @@ module Lightspeed
       }
 
       dynamic_library_path = File.join(structure_task.latest_version_path, basename)
-      linker_task = file(dynamic_library_path => [structure_task.latest_version_path, *object_files, *framework_swiftmodule_files]) { |t|
+      file(dynamic_library_path => [structure_task.latest_version_path, *object_files, *framework_swiftmodule_files]) { |t|
         swift "-emit-library", "-o", t.name, "--", *object_files
       }
 
-      proxy_task = ProxyTask.define_task(name => [structure_task.name, linker_task])
+      proxy_task = ProxyTask.define_task(name => [structure_task.name, dynamic_library_path])
 
       # Ensure the appropriate subtasks are rebuilt if the framework's
       # dependencies change.
