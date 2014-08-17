@@ -53,6 +53,19 @@ module Lightspeed
     end
 
 
+    ## Source file location
+
+    def base_dir
+      @base_dir || Dir.pwd
+    end
+
+    def with_base_dir(base_dir, &block)
+      @base_dir = base_dir
+      yield
+      @base_dir = nil
+    end
+
+
     ### Build locations
 
     def executables_dir

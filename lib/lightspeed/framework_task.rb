@@ -2,6 +2,7 @@ require 'rake/tasklib'
 require 'json'
 
 require_relative 'compile_utils'
+require_relative 'ext/file_list'
 require_relative 'framework_structure_task'
 require_relative 'output_file_map_task'
 require_relative 'swift_compilation_task'
@@ -103,12 +104,16 @@ module Lightspeed
       directory(config.target_build_dir(basename)).name
     end
 
-    def source_files
-      @source_files ||= FileList["#{basename}/**/*.{h,c,swift}"]
+    def source_files=(*args)
+       @source_files = locate_sources(*args.flatten)
     end
 
-    def source_files=(*args)
-      @source_files = FileList[*args.flatten]
+    def source_files
+      @source_files ||= locate_sources("#{basename}/**/*.{swift,h,c,m}")
+    end
+
+    def locate_sources(*paths)
+      FileList.relative_to(config.base_dir, *paths)
     end
 
     def header_files

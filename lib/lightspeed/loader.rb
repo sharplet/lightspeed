@@ -23,7 +23,10 @@ module Lightspeed
 
     def load
       depfiles.map { |path| [File.expand_path(path), File.read(path)] }.each do |file, contents|
-        dsl_proxy.instance_eval(contents, file)
+        base_dir = file.pathmap("%d")
+        config.with_base_dir(base_dir) do
+          dsl_proxy.instance_eval(contents, file)
+        end
       end
     end
 
@@ -32,7 +35,11 @@ module Lightspeed
     attr_reader :search_paths
 
     def depfiles
-      @depfiles ||= FileList[search_paths.pathmap("%f/lightspeed.{rb,rake}")]
+      @depfiles ||= FileList[search_paths.pathmap("%p/lightspeed.{rb,rake}")]
+    end
+
+    def config
+      Lightspeed.configuration
     end
 
     def dsl_proxy

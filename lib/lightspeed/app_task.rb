@@ -19,7 +19,7 @@ module Lightspeed
 
     def source_files=(*args)
       patterns = args.flatten
-      @source_files = FileList[*patterns]
+      @source_files = FileList.relative_to(config.base_dir, *patterns)
     end
 
     def define

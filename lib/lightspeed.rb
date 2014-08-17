@@ -12,6 +12,7 @@ require_relative 'lightspeed/configuration'
 require_relative 'lightspeed/dsl'
 
 # Extensions
+require_relative 'lightspeed/ext/file_list'
 require_relative 'lightspeed/ext/file_utils'
 
 # Load user dependencies
