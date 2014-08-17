@@ -1,5 +1,4 @@
 require 'rake/tasklib'
-require 'json'
 
 require_relative 'compile_utils'
 require_relative 'ext/file_list'
