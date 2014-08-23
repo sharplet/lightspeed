@@ -4,27 +4,31 @@ module Lightspeed
   class SwiftCommand
     include FileUtils
 
-    attr_reader :args, :config
+    COMPILER_MODES = {
+      compiled: 'swiftc',
+      immediate: 'swift',
+    }
 
-    def initialize(args, config: Lightspeed.configuration)
+    attr_reader :args, :mode, :config
+
+    def initialize(args, mode: :compiled, config: Lightspeed.configuration)
       @args = args
+      @mode = COMPILER_MODES.fetch(mode) { fail ArgumentError, "unsupported swift compiler mode '#{mode}'" }
       @config = config
     end
 
     def build
-      cmd = format_cmd
       if block_given?
-        yield *cmd
+        yield *format_cmd
       else
-        cmd
+        format_cmd
       end
     end
 
     private
 
     def format_cmd
-      all_opts = sdk_opts + linker_opts + import_opts + args
-      cmd = ['xcrun', 'swiftc', *all_opts]
+      cmd = ['xcrun', *sdk_opts, mode, *framework_opts, *args]
       if args.count == 1 && args.first.to_s.include?(" ")
         cmd = cmd.join(" ")
       else
@@ -33,15 +37,11 @@ module Lightspeed
     end
 
     def sdk_opts
-      ['-sdk', config.sdk]
+      ['-sdk', config.sdk.to_s]
     end
 
-    def linker_opts
-      [ *map_if?(build_dir) { |dir| "-L#{dir}" } ]
-    end
-
-    def import_opts
-      [ *map_if?(build_dir) { |dir| "-I#{dir}" } ]
+    def framework_opts
+      [ *map_if?(build_dir) { |dir| "-F#{dir}" } ]
     end
 
     def build_dir

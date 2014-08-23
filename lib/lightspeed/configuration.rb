@@ -28,8 +28,10 @@ module Lightspeed
     attr_accessor :sdk
 
     # Build locations
-    attr_accessor :build_dir, :executables_dir
-    alias_method :build_products_dir, :build_dir
+    attr_accessor :build_dir,
+                  :build_intermediates_dir,
+                  :build_products_dir,
+                  :executables_dir
 
 
     ### Initialization
@@ -46,27 +48,21 @@ module Lightspeed
 
     ### SDK paths
 
-    def sdk
-      resolve_sdk
-    end
-
-    def sdk=(new_sdk)
-      @resolved_sdk = nil
-      @sdk = new_sdk
-    end
-
-    def resolve_sdk
-      @resolved_sdk ||=
-        case @sdk
-        when :macosx, :iphoneos, :iphonesimulator
-          %x(xcrun --sdk #{@sdk.to_s} --show-sdk-path).chomp
-        else
-          fail "Unknown SDK Error"
-        end
-    end
-
     def self.sdk
       instance.sdk
+    end
+
+
+    ## Source file location
+
+    def base_dir
+      @base_dir || Dir.pwd
+    end
+
+    def with_base_dir(base_dir, &block)
+      @base_dir = base_dir
+      yield
+      @base_dir = nil
     end
 
 
@@ -74,6 +70,18 @@ module Lightspeed
 
     def executables_dir
       @executables_dir ||= "bin"
+    end
+
+    def build_products_dir
+      @build_products_dir ||= File.join(build_dir, "Products")
+    end
+
+    def build_intermediates_dir
+      @build_intermediates_dir ||= File.join(build_dir, "Intermediates")
+    end
+
+    def target_build_dir(target)
+      File.join(build_intermediates_dir, target.ext(".build"))
     end
 
   end
