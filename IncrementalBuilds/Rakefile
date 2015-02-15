@@ -1,0 +1,23 @@
+SOURCE_FILES = FileList['*.swift']
+OBJECTS_DIR = FileList[directory('build/objects').name]
+PRODUCTS_DIR = FileList[directory('build/products').name]
+OBJECT_FILES = SOURCE_FILES.pathmap("%{,#{OBJECTS_DIR}/}X.o")
+
+SWIFT_STANDARD_LIBRARY_PATH = %x(xcrun --toolchain default -f swiftc).chomp.pathmap("%{usr/bin/swiftc,usr/lib/swift/macosx}p")
+
+rule '.o' => ->(n){n.pathmap('%n.swift')} do |t|
+  mkdir_p OBJECTS_DIR
+  other_files = SOURCE_FILES - FileList[t.source]
+  sh "xcrun -sdk macosx swift -frontend -c -module-name Foo -primary-file #{t.source} #{other_files} -o #{t.name}"
+end
+
+file 'libFoo.dylib' => (OBJECT_FILES + PRODUCTS_DIR) do |t|
+  *object_files, _ = t.sources
+  sh "xcrun", "-sdk", "macosx", "clang", "-dynamiclib", "-L#{SWIFT_STANDARD_LIBRARY_PATH}", "-o", t.name, "--", *object_files
+end
+
+task :clean do
+  rm_rf "build"
+end
+
+task :default => 'libFoo.dylib'
